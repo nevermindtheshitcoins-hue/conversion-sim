@@ -13,6 +13,7 @@ import {z} from 'genkit';
 
 const GreenEggsFlowInputSchema = z.object({
   buttonNumber: z.number().describe('The number of the button that was pressed.'),
+  question: z.string().describe('The question to ask the AI.'),
 });
 export type GreenEggsFlowInput = z.infer<typeof GreenEggsFlowInputSchema>;
 
@@ -26,7 +27,7 @@ export async function greenEggsFlow(input: GreenEggsFlowInput): Promise<GreenEgg
     name: 'greenEggsPrompt',
     input: {schema: GreenEggsFlowInputSchema},
     output: {schema: GreenEggsFlowOutputSchema},
-    prompt: `I pressed button {{buttonNumber}} now make me Green Eggs and ???`,
+    prompt: `The user was asked the question: "{{question}}". They selected button {{buttonNumber}}. Provide a one-word answer to the question, and then repeat that answer a number of times equal to the button number selected.`,
   });
 
   const {output} = await prompt(input);

@@ -107,25 +107,60 @@ const TitleBar = () => (
 
 /* ----------------- Main component ----------------- */
 export default function MinimalPage() {
+  const [screen, setScreen] = useState(1);
   const [selection, setSelection] = useState<number | null>(null);
   const [response, setResponse] = useState<ActionResult<GreenEggsFlowOutput>>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleConfirm = async () => {
     if (selection === null) return;
-    setIsLoading(true);
-    setResponse(null);
-    const result = await submitSelection(selection);
-    setResponse(result);
-    setIsLoading(false);
+
+    if (screen === 1) {
+      setScreen(2);
+      setSelection(null);
+      setResponse(null);
+    } else if (screen === 2) {
+      setIsLoading(true);
+      setResponse(null);
+      const question = 'I do not like green eggs and ham, said who ?';
+      const result = await submitSelection(selection, question);
+      setResponse(result);
+      setIsLoading(false);
+    }
   };
 
   const handleBack = () => {
     setSelection(null);
     setResponse(null);
+    if (screen === 2) {
+      setScreen(1);
+    }
   };
 
   const pills = [1, 2, 3, 4, 5];
+
+  const getScreenContent = () => {
+    if (isLoading) {
+      return (
+        <div className="flex h-full items-center justify-center">
+          <Loader2 className="h-16 w-16 animate-spin text-emerald-400" />
+        </div>
+      );
+    }
+    if (response?.success) {
+      return <p className="whitespace-pre-wrap text-lg font-medium">{response.data.response}</p>;
+    }
+    if (response?.error) {
+      return <p className="text-red-400">{response.error}</p>;
+    }
+    if (screen === 1) {
+      return <p className="text-zinc-500">Awaiting selection...</p>;
+    }
+    if (screen === 2) {
+      return <p className="text-lg font-medium text-emerald-300">I do not like green eggs and ham, said who ?</p>;
+    }
+    return null;
+  };
 
   return (
     <div className="container mx-auto p-4 sm:p-6 lg:p-8">
@@ -144,17 +179,7 @@ export default function MinimalPage() {
             <div className="pointer-events-none absolute inset-0 rounded-xl shadow-[inset_0_0_120px_rgba(0,0,0,.9)]" />
 
             <div className="z-10 h-full w-full text-center text-emerald-300 drop-shadow-[0_0_8px_rgba(16,185,129,.6)]">
-              {isLoading ? (
-                <div className="flex h-full items-center justify-center">
-                  <Loader2 className="h-16 w-16 animate-spin text-emerald-400" />
-                </div>
-              ) : response?.success ? (
-                <p className="whitespace-pre-wrap text-lg font-medium">{response.data.response}</p>
-              ) : response?.error ? (
-                <p className="text-red-400">{response.error}</p>
-              ) : (
-                <p className="text-zinc-500">Awaiting selection...</p>
-              )}
+              {getScreenContent()}
             </div>
           </div>
 
