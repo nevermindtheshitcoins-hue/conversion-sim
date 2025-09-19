@@ -127,16 +127,21 @@ export default function MinimalPage() {
   const [tempSelection, setTempSelection] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [nextScreen, setNextScreen] = useState<number | null>(null);
-
+  
   const currentScreen = screenFlow[currentScreenIndex];
+  const previousScreenId = React.useRef<string | null>(null);
 
   useEffect(() => {
-    if (nextScreen !== null) {
-      setCurrentScreenIndex(nextScreen);
-      setNextScreen(null);
+    const wasLoading =
+      previousScreenId.current === 'LOADING_QUESTIONS' ||
+      previousScreenId.current === 'LOADING_REPORT';
+      
+    if (wasLoading && !isLoading) {
+      setCurrentScreenIndex((prevIndex) => prevIndex + 1);
     }
-  }, [screenFlow, nextScreen]);
+    previousScreenId.current = currentScreen.id;
+  }, [isLoading, currentScreen.id]);
+
   
   const handleConfirm = async () => {
     if (tempSelection === null && currentScreen.type === 'QUESTION') return;
@@ -156,8 +161,6 @@ export default function MinimalPage() {
         `Screen: ${currentScreen.id}`
       );
       
-      setIsLoading(false);
-
       if (result?.success) {
         const newFlow = [...screenFlow];
         if (result.data.questions) {
@@ -175,13 +178,12 @@ export default function MinimalPage() {
         }
 
         setScreenFlow(newFlow);
-        setNextScreen(currentScreenIndex + 2);
-
       } else {
         setError(result?.error || 'An unexpected error occurred.');
         setCurrentScreenIndex(currentScreenIndex); 
       }
-  
+
+      setIsLoading(false);
       return;
     }
   
