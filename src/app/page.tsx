@@ -140,7 +140,7 @@ export default function MinimalPage() {
       setCurrentScreenIndex((prevIndex) => prevIndex + 1);
     }
     previousScreenId.current = currentScreen.id;
-  }, [isLoading, currentScreen.id]);
+  }, [isLoading, currentScreen.id, screenFlow]);
 
   
   const handleConfirm = async () => {
