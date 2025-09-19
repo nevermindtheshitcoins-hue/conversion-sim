@@ -55,8 +55,7 @@ export default function MinimalPage() {
     // This effect runs when `isLoading` changes.
     // When an API call completes (isLoading becomes false), we check if the current screen is a loading screen.
     // If it is, we automatically advance to the next screen.
-    const wasLoading = !isLoading && screenFlow[currentScreenIndex].type === 'LOADING';
-    if (wasLoading) {
+    if (!isLoading && screenFlow[currentScreenIndex].type === 'LOADING') {
       setCurrentScreenIndex((prevIndex) => prevIndex + 1);
     }
   }, [isLoading, screenFlow, currentScreenIndex]);
@@ -171,7 +170,7 @@ export default function MinimalPage() {
              <div className="text-center h-full flex flex-col justify-center">
                 <h2 className="text-2xl font-extrabold tracking-widest text-yellow-300 drop-shadow">REPORT</h2>
                 <p className="mt-2 text-sm tracking-[0.2em] text-emerald-300">Report Generated. Press Green Button to copy.</p>
-                <div className="mt-4 text-left text-sm bg-black/20 p-4 rounded-lg overflow-auto max-h-80">
+                <div className="mt-4 text-left text-sm bg-black/20 p-4 rounded-lg overflow-y-auto max-h-80">
                     <pre className="whitespace-pre-wrap font-sans">{currentScreen.content}</pre>
                 </div>
             </div>
