@@ -25,20 +25,22 @@ export type GreenEggsFlowOutput = z.infer<typeof GreenEggsFlowOutputSchema>;
 
 export async function greenEggsFlow(input: GreenEggsFlowInput): Promise<GreenEggsFlowOutput> {
   let promptText: string;
-  let outputSchema = GreenEggsFlowOutputSchema;
 
   if (input.question === 'Screen: PRELIM_B') {
     promptText = `Hooray! Hooray! You're on your way! You've passed the prelims, come what may! For pressing button {{buttonNumber}}, a treasure awaits, a list of questions to open the gates! Please provide a JSON object with a 'response' field containing a short celebratory message and a 'questions' field containing an array of 5 unique questions.`;
+    console.log('Using PRELIM_B prompt.');
   } else if (input.question === 'Screen: Q5') {
     promptText = `Oh, the places you'll go, the things you will see! You've answered the questions, all five, with glee! With button {{buttonNumber}} as your guide and your key, a marvelous report is what you will see!`;
+    console.log('Using Q5 prompt.');
   } else {
     promptText = `The user was asked the question: "{{question}}". They selected button {{buttonNumber}}. Provide a one-word answer to the question, and then repeat that answer a number of times equal to the button number selected.`;
+    console.log('Using default prompt.');
   }
 
   const prompt = ai.definePrompt({
     name: 'greenEggsPrompt',
     input: {schema: GreenEggsFlowInputSchema},
-    output: {schema: outputSchema},
+    output: {schema: GreenEggsFlowOutputSchema},
     prompt: promptText,
   });
 
