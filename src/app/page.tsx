@@ -136,71 +136,67 @@ export default function MinimalPage() {
   const [tempSelection, setTempSelection] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   const currentScreen = screenFlow[currentScreenIndex];
   const wasLoading = React.useRef<boolean>(false);
 
   useEffect(() => {
     if (wasLoading.current && !isLoading) {
       if (currentScreen.type === 'LOADING') {
-        setCurrentScreenIndex(prevIndex => prevIndex + 1);
+        setCurrentScreenIndex((prevIndex) => prevIndex + 1);
       }
     }
     wasLoading.current = isLoading;
-  }, [isLoading, currentScreen.type]);
+  }, [isLoading, currentScreen.type, currentScreenIndex]);
 
-  
   const handleConfirm = async () => {
     if (tempSelection === null && currentScreen.type === 'QUESTION') return;
-  
+
     const newSelections = [...selections];
     newSelections[currentScreenIndex] = tempSelection;
     setSelections(newSelections);
     setTempSelection(null);
     setError(null);
-  
+
     if (currentScreen.apiCall) {
       setIsLoading(true);
-      setCurrentScreenIndex(currentScreenIndex + 1); 
-  
-      const result = await submitSelection(
-        tempSelection!,
-        `Screen: ${currentScreen.id}`
-      );
-      
+      setCurrentScreenIndex(currentScreenIndex + 1);
+
+      const result = await submitSelection(tempSelection!, `Screen: ${currentScreen.id}`);
+
       if (result?.success) {
         const newFlow = [...screenFlow];
         if (result.data.questions) {
           result.data.questions.forEach((q, i) => {
-            const screenIndex = newFlow.findIndex(s => s.id === `Q${i + 1}`);
+            const screenIndex = newFlow.findIndex((s) => s.id === `Q${i + 1}`);
             if (screenIndex !== -1) {
               newFlow[screenIndex].content = q;
             }
           });
         }
-        
-        const reportScreenIndex = newFlow.findIndex(s => s.id === 'REPORT');
-        if(currentScreen.id === 'Q5' && reportScreenIndex !== -1) {
+
+        const reportScreenIndex = newFlow.findIndex((s) => s.id === 'REPORT');
+        if (currentScreen.id === 'Q5' && reportScreenIndex !== -1) {
           newFlow[reportScreenIndex].content = result.data.response;
         }
 
         setScreenFlow(newFlow);
       } else {
         setError(result?.error || 'An unexpected error occurred.');
-        setCurrentScreenIndex(currentScreenIndex); 
+        setCurrentScreenIndex(currentScreenIndex);
       }
 
       setIsLoading(false);
       return;
     }
-  
+
     if (currentScreen.type === 'REPORT') {
       const reportContent = currentScreen.content;
       navigator.clipboard.writeText(reportContent);
       alert('Report copied to clipboard!');
       return;
     }
-  
+
     if (currentScreenIndex < screenFlow.length - 1) {
       setCurrentScreenIndex(currentScreenIndex + 1);
     }
@@ -228,7 +224,7 @@ export default function MinimalPage() {
   const pills = [1, 2, 3, 4, 5];
 
   const getScreenContent = () => {
-    if (isLoading) {
+    if (currentScreen.type === 'LOADING') {
       return (
         <div className="flex flex-col items-center justify-center gap-4">
           <Loader2 className="h-16 w-16 animate-spin text-emerald-400" />
@@ -236,11 +232,11 @@ export default function MinimalPage() {
         </div>
       );
     }
-    
+
     if (error) {
       return <p className="text-red-400">{error}</p>;
     }
-    
+
     return (
       <p className="whitespace-pre-wrap text-lg font-medium text-emerald-300">
         {currentScreen.content}
