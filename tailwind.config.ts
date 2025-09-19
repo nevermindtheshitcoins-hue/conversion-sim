@@ -69,10 +69,20 @@ export default {
             height: '0',
           },
         },
+        marquee: {
+          '0%': { transform: 'translateX(0)' },
+          '100%': { transform: 'translateX(-50%)' },
+        },
+        'pulse-slow': {
+          '0%, 100%': { opacity: '0.85' },
+          '50%': { opacity: '0.3' },
+        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
+        marquee: 'marquee 24s linear infinite',
+        'pulse-slow': 'pulse-slow 3s ease-in-out infinite',
       },
     },
   },
