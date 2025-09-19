@@ -4,7 +4,14 @@ import React, {useState, useEffect} from 'react';
 import {Loader2} from 'lucide-react';
 import {submitSelection} from '@/app/actions';
 
-const Pill = ({id, label, onClick, active = false}) => (
+interface PillProps {
+  id: string;
+  label: string;
+  onClick: () => void;
+  active?: boolean;
+}
+
+const Pill: React.FC<PillProps> = ({id, label, onClick, active = false}) => (
   <button
     id={id}
     onClick={onClick}
@@ -49,7 +56,13 @@ const Pill = ({id, label, onClick, active = false}) => (
   </button>
 );
 
-const RoundButton = ({tone = 'green', onClick, disabled = false}) => {
+interface RoundButtonProps {
+  tone?: 'green' | 'red';
+  onClick: () => void;
+  disabled?: boolean;
+}
+
+const RoundButton: React.FC<RoundButtonProps> = ({tone = 'green', onClick, disabled = false}) => {
   const colors = {
     green: {base: '#1fd270', dark: '#0f8c49', glow: '#36ff98'},
     red: {base: '#ff4b4b', dark: '#a61b1b', glow: '#ff7777'},
