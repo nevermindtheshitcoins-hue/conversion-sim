@@ -1,6 +1,6 @@
 'use client';
 
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {Loader2} from 'lucide-react';
 import {submitSelection} from '@/app/actions';
 import type {ActionResult} from '@/app/actions';
@@ -127,8 +127,16 @@ export default function MinimalPage() {
   const [tempSelection, setTempSelection] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [nextScreen, setNextScreen] = useState<number | null>(null);
 
   const currentScreen = screenFlow[currentScreenIndex];
+
+  useEffect(() => {
+    if (nextScreen !== null) {
+      setCurrentScreenIndex(nextScreen);
+      setNextScreen(null);
+    }
+  }, [screenFlow, nextScreen]);
   
   const handleConfirm = async () => {
     if (tempSelection === null && currentScreen.type === 'QUESTION') return;
@@ -161,13 +169,14 @@ export default function MinimalPage() {
           });
         }
         
-        const nextScreenIndex = currentScreenIndex + 2;
-        if(newFlow[nextScreenIndex - 1].id === 'LOADING_REPORT') {
-          newFlow[nextScreenIndex].content = result.data.response;
+        const reportScreenIndex = newFlow.findIndex(s => s.id === 'REPORT');
+        if(currentScreen.id === 'Q5' && reportScreenIndex !== -1) {
+          newFlow[reportScreenIndex].content = result.data.response;
         }
 
         setScreenFlow(newFlow);
-        setCurrentScreenIndex(currentScreenIndex + 2);
+        setNextScreen(currentScreenIndex + 2);
+
       } else {
         setError(result?.error || 'An unexpected error occurred.');
         setCurrentScreenIndex(currentScreenIndex); 
