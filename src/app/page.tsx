@@ -124,17 +124,16 @@ export default function MinimalPage() {
   const [error, setError] = useState<string | null>(null);
   
   const currentScreen = screenFlow[currentScreenIndex];
-  const previousScreenType = React.useRef<string | null>(null);
+  const wasLoading = React.useRef<boolean>(false);
 
   useEffect(() => {
-    const wasLoading =
-      previousScreenType.current === 'LOADING';
-      
-    if (wasLoading && !isLoading) {
-      setCurrentScreenIndex((prevIndex) => prevIndex + 1);
+    if (wasLoading.current && !isLoading) {
+      if (currentScreen.type === 'LOADING') {
+        setCurrentScreenIndex(prevIndex => prevIndex + 1);
+      }
     }
-    previousScreenType.current = currentScreen.type;
-  }, [isLoading, currentScreen.type, screenFlow]);
+    wasLoading.current = isLoading;
+  }, [isLoading, currentScreen.type]);
 
   
   const handleConfirm = async () => {
@@ -215,7 +214,7 @@ export default function MinimalPage() {
   const pills = [1, 2, 3, 4, 5];
 
   const getScreenContent = () => {
-    if (isLoading || currentScreen.type === 'LOADING') {
+    if (isLoading) {
       return (
         <div className="flex flex-col items-center justify-center gap-4">
           <Loader2 className="h-16 w-16 animate-spin text-emerald-400" />
