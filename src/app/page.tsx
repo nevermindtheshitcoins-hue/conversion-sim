@@ -124,8 +124,8 @@ export default function MinimalPage() {
   const [currentScreenIndex, setCurrentScreenIndex] = useState(0);
   const [selections, setSelections] = useState<(number | null)[]>(new Array(screenFlow.length).fill(null));
   const [tempSelection, setTempSelection] = useState<number | null>(null);
-  const [apiResponse, setApiResponse] = useState<ActionResult<GreenEggsFlowOutput>>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const currentScreen = screenFlow[currentScreenIndex];
   
@@ -136,6 +136,7 @@ export default function MinimalPage() {
     newSelections[currentScreenIndex] = tempSelection;
     setSelections(newSelections);
     setTempSelection(null);
+    setError(null);
   
     if (currentScreen.apiCall) {
       setIsLoading(true);
@@ -145,26 +146,37 @@ export default function MinimalPage() {
         tempSelection!,
         `Screen: ${currentScreen.id}`
       );
-      setApiResponse(result);
+      
+      setIsLoading(false);
 
-      if (result?.success && result.data.questions) {
+      if (result?.success) {
         const newFlow = [...screenFlow];
-        result.data.questions.forEach((q, i) => {
-          const screenIndex = newFlow.findIndex(s => s.id === `Q${i + 1}`);
-          if (screenIndex !== -1) {
-            newFlow[screenIndex].content = q;
-          }
-        });
+        if (result.data.questions) {
+          result.data.questions.forEach((q, i) => {
+            const screenIndex = newFlow.findIndex(s => s.id === `Q${i + 1}`);
+            if (screenIndex !== -1) {
+              newFlow[screenIndex].content = q;
+            }
+          });
+        }
+        
+        const nextScreenIndex = currentScreenIndex + 2;
+        if(newFlow[nextScreenIndex - 1].id === 'LOADING_REPORT') {
+          newFlow[nextScreenIndex].content = result.data.response;
+        }
+
         setScreenFlow(newFlow);
+        setCurrentScreenIndex(currentScreenIndex + 2);
+      } else {
+        setError(result?.error || 'An unexpected error occurred.');
+        setCurrentScreenIndex(currentScreenIndex); 
       }
   
-      setIsLoading(false);
-      setCurrentScreenIndex(currentScreenIndex + 2); 
       return;
     }
   
     if (currentScreen.type === 'REPORT') {
-      const reportContent = apiResponse?.success ? apiResponse.data.response : '';
+      const reportContent = currentScreen.content;
       navigator.clipboard.writeText(reportContent);
       alert('Report copied to clipboard!');
       return;
@@ -176,7 +188,7 @@ export default function MinimalPage() {
   };
 
   const handleBack = () => {
-    setApiResponse(null);
+    setError(null);
     if (tempSelection !== null) {
       setTempSelection(null);
       return;
@@ -205,28 +217,16 @@ export default function MinimalPage() {
         </div>
       );
     }
-    if (currentScreen.type === 'REPORT') {
-      const reportContent = apiResponse?.success ? apiResponse.data.response : apiResponse?.error || 'No report generated.';
-      return (
-        <p className="whitespace-pre-wrap text-lg font-medium">
-          {reportContent}
-        </p>
-      );
+    
+    if (error) {
+      return <p className="text-red-400">{error}</p>;
     }
     
-    const previousScreen = screenFlow[currentScreenIndex - 1];
-    if (previousScreen?.type === 'LOADING' && apiResponse?.success) {
-      return (
-        <p className="text-lg font-medium text-emerald-300">
-          {apiResponse.data.response}
-        </p>
-      );
-    }
-    
-    if (apiResponse?.error) {
-      return <p className="text-red-400">{apiResponse.error}</p>;
-    }
-    return <p className="text-lg font-medium text-emerald-300">{currentScreen.content}</p>;
+    return (
+      <p className="whitespace-pre-wrap text-lg font-medium text-emerald-300">
+        {currentScreen.content}
+      </p>
+    );
   };
 
   return (
