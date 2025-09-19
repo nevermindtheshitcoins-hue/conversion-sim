@@ -104,7 +104,7 @@ const TitleBar = () => (
   </div>
 );
 
-const screenFlow = [
+const initialScreenFlow = [
   {id: 'INIT', content: 'Select Domain', type: 'QUESTION'},
   {id: 'PRELIM_A', content: 'Select Use Case', type: 'QUESTION'},
   {id: 'PRELIM_B', content: 'Select Pain Points', type: 'QUESTION', apiCall: true},
@@ -120,6 +120,7 @@ const screenFlow = [
 
 /* ----------------- Main component ----------------- */
 export default function MinimalPage() {
+  const [screenFlow, setScreenFlow] = useState(initialScreenFlow);
   const [currentScreenIndex, setCurrentScreenIndex] = useState(0);
   const [selections, setSelections] = useState<(number | null)[]>(new Array(screenFlow.length).fill(null));
   const [tempSelection, setTempSelection] = useState<number | null>(null);
@@ -131,29 +132,37 @@ export default function MinimalPage() {
   const handleConfirm = async () => {
     if (tempSelection === null && currentScreen.type === 'QUESTION') return;
   
-    // 1. Store the temporary selection
     const newSelections = [...selections];
     newSelections[currentScreenIndex] = tempSelection;
     setSelections(newSelections);
     setTempSelection(null);
   
-    // 2. Handle API calls if needed
     if (currentScreen.apiCall) {
       setIsLoading(true);
-      setCurrentScreenIndex(currentScreenIndex + 1); // Move to loading screen
+      setCurrentScreenIndex(currentScreenIndex + 1); 
   
       const result = await submitSelection(
         tempSelection!,
         `Screen: ${currentScreen.id}`
       );
       setApiResponse(result);
+
+      if (result?.success && result.data.questions) {
+        const newFlow = [...screenFlow];
+        result.data.questions.forEach((q, i) => {
+          const screenIndex = newFlow.findIndex(s => s.id === `Q${i + 1}`);
+          if (screenIndex !== -1) {
+            newFlow[screenIndex].content = q;
+          }
+        });
+        setScreenFlow(newFlow);
+      }
   
       setIsLoading(false);
-      setCurrentScreenIndex(currentScreenIndex + 2); // Move to the screen after loading
+      setCurrentScreenIndex(currentScreenIndex + 2); 
       return;
     }
   
-    // 3. Handle clipboard copy on report screen
     if (currentScreen.type === 'REPORT') {
       const reportContent = apiResponse?.success ? apiResponse.data.response : '';
       navigator.clipboard.writeText(reportContent);
@@ -161,7 +170,6 @@ export default function MinimalPage() {
       return;
     }
   
-    // 4. Move to the next screen
     if (currentScreenIndex < screenFlow.length - 1) {
       setCurrentScreenIndex(currentScreenIndex + 1);
     }
@@ -206,7 +214,6 @@ export default function MinimalPage() {
       );
     }
     
-    // Display API response content on screens immediately following a loading screen
     const previousScreen = screenFlow[currentScreenIndex - 1];
     if (previousScreen?.type === 'LOADING' && apiResponse?.success) {
       return (
