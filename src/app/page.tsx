@@ -51,7 +51,7 @@ const Pill = ({label, onClick, active = false}) => (
   </button>
 );
 
-const RoundButton = ({tone = 'green', onClick, disabled = false, children}) => {
+const RoundButton = ({tone = 'green', onClick, disabled = false}) => {
   const colors = {
     green: {base: '#1fd270', dark: '#0f8c49', glow: '#36ff98'},
     red: {base: '#ff4b4b', dark: '#a61b1b', glow: '#ff7777'},
@@ -65,7 +65,6 @@ const RoundButton = ({tone = 'green', onClick, disabled = false, children}) => {
         background: `radial-gradient(100% 100% at 30% 30%, ${colors[tone].base}, ${colors[tone].dark})`,
       }}
     >
-      {children}
       <span
         aria-hidden
         className="pointer-events-none absolute -inset-1 rounded-full"
@@ -128,46 +127,40 @@ export default function MinimalPage() {
   const [isLoading, setIsLoading] = useState(false);
 
   const currentScreen = screenFlow[currentScreenIndex];
-
+  
   const handleConfirm = async () => {
+    if (tempSelection === null && currentScreen.type === 'QUESTION') return;
+  
     // 1. Store the temporary selection
     const newSelections = [...selections];
     newSelections[currentScreenIndex] = tempSelection;
     setSelections(newSelections);
     setTempSelection(null);
-
+  
     // 2. Handle API calls if needed
     if (currentScreen.apiCall) {
       setIsLoading(true);
-      // Move to loading screen
-      setCurrentScreenIndex(currentScreenIndex + 1);
-
+      setCurrentScreenIndex(currentScreenIndex + 1); // Move to loading screen
+  
       const result = await submitSelection(
         tempSelection!,
         `Screen: ${currentScreen.id}`
       );
       setApiResponse(result);
-
-      if (currentScreen.id === 'Q5' && result?.success) {
-        const finalScreenIndex = screenFlow.findIndex(s => s.id === 'REPORT');
-        // Inject final response into the report screen's content
-        screenFlow[finalScreenIndex].content = result.data.response;
-      }
-
+  
       setIsLoading(false);
-      // Move to the screen after loading
-      setCurrentScreenIndex(currentScreenIndex + 2);
+      setCurrentScreenIndex(currentScreenIndex + 2); // Move to the screen after loading
       return;
     }
-
+  
     // 3. Handle clipboard copy on report screen
     if (currentScreen.type === 'REPORT') {
-      navigator.clipboard.writeText(currentScreen.content as string);
-      // Maybe show a toast or confirmation here
+      const reportContent = apiResponse?.success ? apiResponse.data.response : '';
+      navigator.clipboard.writeText(reportContent);
       alert('Report copied to clipboard!');
       return;
     }
-
+  
     // 4. Move to the next screen
     if (currentScreenIndex < screenFlow.length - 1) {
       setCurrentScreenIndex(currentScreenIndex + 1);
@@ -175,24 +168,21 @@ export default function MinimalPage() {
   };
 
   const handleBack = () => {
-    // If a selection is active, deselect it.
+    setApiResponse(null);
     if (tempSelection !== null) {
       setTempSelection(null);
       return;
     }
-    // Otherwise, go back one screen.
     if (currentScreenIndex > 0) {
-      // Clear the selection for the screen we are leaving
       const newSelections = [...selections];
       newSelections[currentScreenIndex] = null;
       setSelections(newSelections);
 
-      // Handle jumping back over loading screens
-      if (screenFlow[currentScreenIndex - 1]?.type === 'LOADING') {
-        setCurrentScreenIndex(currentScreenIndex - 2);
-      } else {
-        setCurrentScreenIndex(currentScreenIndex - 1);
+      let backScreenIndex = currentScreenIndex - 1;
+      if (screenFlow[backScreenIndex]?.type === 'LOADING') {
+        backScreenIndex = currentScreenIndex - 2;
       }
+      setCurrentScreenIndex(Math.max(0, backScreenIndex));
     }
   };
 
@@ -208,19 +198,29 @@ export default function MinimalPage() {
       );
     }
     if (currentScreen.type === 'REPORT') {
+      const reportContent = apiResponse?.success ? apiResponse.data.response : apiResponse?.error || 'No report generated.';
       return (
         <p className="whitespace-pre-wrap text-lg font-medium">
-          {apiResponse?.success ? apiResponse.data.response : 'No report generated.'}
+          {reportContent}
         </p>
       );
     }
+    
+    // Display API response content on screens immediately following a loading screen
+    const previousScreen = screenFlow[currentScreenIndex - 1];
+    if (previousScreen?.type === 'LOADING' && apiResponse?.success) {
+      return (
+        <p className="text-lg font-medium text-emerald-300">
+          {apiResponse.data.response}
+        </p>
+      );
+    }
+    
     if (apiResponse?.error) {
       return <p className="text-red-400">{apiResponse.error}</p>;
     }
     return <p className="text-lg font-medium text-emerald-300">{currentScreen.content}</p>;
   };
-
-  const isSelectionRequired = currentScreen.type === 'QUESTION';
 
   return (
     <div className="container mx-auto p-4 sm:p-6 lg:p-8">
@@ -260,7 +260,7 @@ export default function MinimalPage() {
               <RoundButton
                 tone="green"
                 onClick={handleConfirm}
-                disabled={(isSelectionRequired && tempSelection === null) || isLoading}
+                disabled={(currentScreen.type === 'QUESTION' && tempSelection === null) || isLoading}
               />
             </div>
           </div>
