@@ -27,7 +27,7 @@ const GreenEggsFlowOutputSchemaPartial = GreenEggsFlowOutputSchema.partial();
 
 export async function greenEggsFlow(input: GreenEggsFlowInput): Promise<GreenEggsFlowOutput> {
   let promptText: string;
-  let outputSchema = GreenEggsFlowOutputSchema;
+  let outputSchema: z.ZodSchema<any> = GreenEggsFlowOutputSchema;
 
   console.log('Entered greenEggsFlow with input:', JSON.stringify(input, null, 2));
 
