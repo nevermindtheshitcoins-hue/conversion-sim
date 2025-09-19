@@ -1,13 +1,13 @@
 'use server';
 
-import {greenEggsFlow, GreenEggsFlowOutput} from '@/ai/flows/green-eggs-flow';
+import {diagnosePlant, DiagnosePlantOutput} from '@/ai/flows/green-eggs-flow';
 
 export type ActionResult<T> = {success: true; data: T} | {success: false; error: string} | null;
 
 export async function submitSelection(
   buttonNumber: number,
   question: string
-): Promise<ActionResult<GreenEggsFlowOutput>> {
+): Promise<ActionResult<DiagnosePlantOutput>> {
   if (buttonNumber < 1 || buttonNumber > 5) {
     return {success: false, error: 'Invalid button selection.'};
   }
@@ -16,7 +16,7 @@ export async function submitSelection(
     const input = {buttonNumber, question};
     console.log('Submitting to AI flow with input:', JSON.stringify(input, null, 2));
 
-    const result = await greenEggsFlow(input);
+    const result = await diagnosePlant(input);
 
     console.log('Received from AI flow:', JSON.stringify(result, null, 2));
 

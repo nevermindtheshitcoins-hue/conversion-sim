@@ -1,31 +1,31 @@
 'use server';
 
 /**
- * Generates a response for the "Green Eggs and ???" prompt.
+ * @fileOverview A plant problem diagnosis AI agent.
  *
- * - greenEggsFlow - A function that generates the response.
- * - GreenEggsFlowInput - The input type for the greenEggsFlow function.
- * - GreenEggsFlowOutput - The return type for the greenEggsFlow function.
+ * - diagnosePlant - A function that handles the plant diagnosis process.
+ * - DiagnosePlantInput - The input type for the diagnosePlant function.
+ * - DiagnosePlantOutput - The return type for the diagnosePlant function.
  */
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
-const GreenEggsFlowInputSchema = z.object({
+const DiagnosePlantInputSchema = z.object({
   buttonNumber: z.number().describe('The number of the button that was pressed.'),
   question: z.string().describe('The context of the screen where the button was pressed.'),
 });
-export type GreenEggsFlowInput = z.infer<typeof GreenEggsFlowInputSchema>;
+export type DiagnosePlantInput = z.infer<typeof DiagnosePlantInputSchema>;
 
-const GreenEggsFlowOutputSchema = z.object({
+const DiagnosePlantOutputSchema = z.object({
   response: z.string().describe('The generated response from the AI.'),
   questions: z.array(z.string()).optional().describe('A list of 5 questions.'),
 });
-export type GreenEggsFlowOutput = z.infer<typeof GreenEggsFlowOutputSchema>;
+export type DiagnosePlantOutput = z.infer<typeof DiagnosePlantOutputSchema>;
 
-const GreenEggsFlowOutputSchemaPartial = GreenEggsFlowOutputSchema.partial();
+const GreenEggsFlowOutputSchemaPartial = DiagnosePlantOutputSchema.partial();
 
-export async function greenEggsFlow(input: GreenEggsFlowInput): Promise<GreenEggsFlowOutput> {
+export async function diagnosePlant(input: DiagnosePlantInput): Promise<DiagnosePlantOutput> {
   let promptText: string;
   let outputSchema: z.ZodSchema<any>;
 
@@ -33,7 +33,7 @@ export async function greenEggsFlow(input: GreenEggsFlowInput): Promise<GreenEgg
 
   if (input.question === 'Screen: PRELIM_B') {
     promptText = `Hooray! Hooray! You're on your way! You've passed the prelims, come what may! For pressing button {{buttonNumber}}, a treasure awaits, a list of questions to open the gates! Please provide a JSON object with a 'response' field containing a short celebratory message and a 'questions' field containing an array of 5 unique questions.`;
-    outputSchema = GreenEggsFlowOutputSchema;
+    outputSchema = DiagnosePlantOutputSchema;
     console.log('Using PRELIM_B prompt.');
   } else if (input.question === 'Screen: Q5') {
     promptText = `Oh, the places you'll go, the things you will see! You've answered the questions, all five, with glee! With button {{buttonNumber}} as your guide and your key, a marvelous report is what you will see!`;
@@ -47,7 +47,7 @@ export async function greenEggsFlow(input: GreenEggsFlowInput): Promise<GreenEgg
 
   const prompt = ai.definePrompt({
     name: 'greenEggsPrompt',
-    input: {schema: GreenEggsFlowInputSchema},
+    input: {schema: DiagnosePlantInputSchema},
     output: {schema: outputSchema},
     prompt: promptText,
   });
