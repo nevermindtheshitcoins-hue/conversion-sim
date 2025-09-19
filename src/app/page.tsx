@@ -105,62 +105,122 @@ const TitleBar = () => (
   </div>
 );
 
+const screenFlow = [
+  {id: 'INIT', content: 'Select Domain', type: 'QUESTION'},
+  {id: 'PRELIM_A', content: 'Select Use Case', type: 'QUESTION'},
+  {id: 'PRELIM_B', content: 'Select Pain Points', type: 'QUESTION', apiCall: true},
+  {id: 'LOADING_QUESTIONS', content: 'Generating Questions...', type: 'LOADING'},
+  {id: 'Q1', content: 'Question 1', type: 'QUESTION'},
+  {id: 'Q2', content: 'Question 2', type: 'QUESTION'},
+  {id: 'Q3', content: 'Question 3', type: 'QUESTION'},
+  {id: 'Q4', content: 'Question 4', type: 'QUESTION'},
+  {id: 'Q5', content: 'Question 5', type: 'QUESTION', apiCall: true},
+  {id: 'LOADING_REPORT', content: 'Generating Report...', type: 'LOADING'},
+  {id: 'REPORT', content: '', type: 'REPORT'},
+];
+
 /* ----------------- Main component ----------------- */
 export default function MinimalPage() {
-  const [screen, setScreen] = useState(1);
-  const [selection, setSelection] = useState<number | null>(null);
-  const [response, setResponse] = useState<ActionResult<GreenEggsFlowOutput>>(null);
+  const [currentScreenIndex, setCurrentScreenIndex] = useState(0);
+  const [selections, setSelections] = useState<(number | null)[]>(new Array(screenFlow.length).fill(null));
+  const [tempSelection, setTempSelection] = useState<number | null>(null);
+  const [apiResponse, setApiResponse] = useState<ActionResult<GreenEggsFlowOutput>>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleConfirm = async () => {
-    if (selection === null) return;
+  const currentScreen = screenFlow[currentScreenIndex];
 
-    if (screen === 1) {
-      setScreen(2);
-      setSelection(null);
-      setResponse(null);
-    } else if (screen === 2) {
+  const handleConfirm = async () => {
+    // 1. Store the temporary selection
+    const newSelections = [...selections];
+    newSelections[currentScreenIndex] = tempSelection;
+    setSelections(newSelections);
+    setTempSelection(null);
+
+    // 2. Handle API calls if needed
+    if (currentScreen.apiCall) {
       setIsLoading(true);
-      setResponse(null);
-      const question = 'I do not like green eggs and ham, said who ?';
-      const result = await submitSelection(selection, question);
-      setResponse(result);
+      // Move to loading screen
+      setCurrentScreenIndex(currentScreenIndex + 1);
+
+      const result = await submitSelection(
+        tempSelection!,
+        `Screen: ${currentScreen.id}`
+      );
+      setApiResponse(result);
+
+      if (currentScreen.id === 'Q5' && result?.success) {
+        const finalScreenIndex = screenFlow.findIndex(s => s.id === 'REPORT');
+        // Inject final response into the report screen's content
+        screenFlow[finalScreenIndex].content = result.data.response;
+      }
+
       setIsLoading(false);
+      // Move to the screen after loading
+      setCurrentScreenIndex(currentScreenIndex + 2);
+      return;
+    }
+
+    // 3. Handle clipboard copy on report screen
+    if (currentScreen.type === 'REPORT') {
+      navigator.clipboard.writeText(currentScreen.content as string);
+      // Maybe show a toast or confirmation here
+      alert('Report copied to clipboard!');
+      return;
+    }
+
+    // 4. Move to the next screen
+    if (currentScreenIndex < screenFlow.length - 1) {
+      setCurrentScreenIndex(currentScreenIndex + 1);
     }
   };
 
   const handleBack = () => {
-    setSelection(null);
-    setResponse(null);
-    if (screen === 2) {
-      setScreen(1);
+    // If a selection is active, deselect it.
+    if (tempSelection !== null) {
+      setTempSelection(null);
+      return;
+    }
+    // Otherwise, go back one screen.
+    if (currentScreenIndex > 0) {
+      // Clear the selection for the screen we are leaving
+      const newSelections = [...selections];
+      newSelections[currentScreenIndex] = null;
+      setSelections(newSelections);
+
+      // Handle jumping back over loading screens
+      if (screenFlow[currentScreenIndex - 1]?.type === 'LOADING') {
+        setCurrentScreenIndex(currentScreenIndex - 2);
+      } else {
+        setCurrentScreenIndex(currentScreenIndex - 1);
+      }
     }
   };
 
   const pills = [1, 2, 3, 4, 5];
 
   const getScreenContent = () => {
-    if (isLoading) {
+    if (isLoading || currentScreen.type === 'LOADING') {
       return (
-        <div className="flex h-full items-center justify-center">
+        <div className="flex flex-col items-center justify-center gap-4">
           <Loader2 className="h-16 w-16 animate-spin text-emerald-400" />
+          <p className="text-lg font-medium text-emerald-300">{currentScreen.content}</p>
         </div>
       );
     }
-    if (response?.success) {
-      return <p className="whitespace-pre-wrap text-lg font-medium">{response.data.response}</p>;
+    if (currentScreen.type === 'REPORT') {
+      return (
+        <p className="whitespace-pre-wrap text-lg font-medium">
+          {apiResponse?.success ? apiResponse.data.response : 'No report generated.'}
+        </p>
+      );
     }
-    if (response?.error) {
-      return <p className="text-red-400">{response.error}</p>;
+    if (apiResponse?.error) {
+      return <p className="text-red-400">{apiResponse.error}</p>;
     }
-    if (screen === 1) {
-      return <p className="text-zinc-500">Awaiting selection...</p>;
-    }
-    if (screen === 2) {
-      return <p className="text-lg font-medium text-emerald-300">I do not like green eggs and ham, said who ?</p>;
-    }
-    return null;
+    return <p className="text-lg font-medium text-emerald-300">{currentScreen.content}</p>;
   };
+
+  const isSelectionRequired = currentScreen.type === 'QUESTION';
 
   return (
     <div className="container mx-auto p-4 sm:p-6 lg:p-8">
@@ -187,12 +247,21 @@ export default function MinimalPage() {
           <div className="flex flex-col justify-between gap-4">
             <div className="flex flex-col gap-3">
               {pills.map(p => (
-                <Pill key={p} label={`BUTTON ${p}`} onClick={() => setSelection(p)} active={selection === p} />
+                <Pill
+                  key={p}
+                  label={`BUTTON ${p}`}
+                  onClick={() => setTempSelection(p)}
+                  active={tempSelection === p}
+                />
               ))}
             </div>
             <div className="flex items-center justify-around">
               <RoundButton tone="red" onClick={handleBack} />
-              <RoundButton tone="green" onClick={handleConfirm} disabled={selection === null || isLoading} />
+              <RoundButton
+                tone="green"
+                onClick={handleConfirm}
+                disabled={(isSelectionRequired && tempSelection === null) || isLoading}
+              />
             </div>
           </div>
         </div>

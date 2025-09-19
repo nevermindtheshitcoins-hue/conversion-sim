@@ -13,7 +13,7 @@ import {z} from 'genkit';
 
 const GreenEggsFlowInputSchema = z.object({
   buttonNumber: z.number().describe('The number of the button that was pressed.'),
-  question: z.string().describe('The question to ask the AI.'),
+  question: z.string().describe('The context of the screen where the button was pressed.'),
 });
 export type GreenEggsFlowInput = z.infer<typeof GreenEggsFlowInputSchema>;
 
@@ -23,11 +23,21 @@ const GreenEggsFlowOutputSchema = z.object({
 export type GreenEggsFlowOutput = z.infer<typeof GreenEggsFlowOutputSchema>;
 
 export async function greenEggsFlow(input: GreenEggsFlowInput): Promise<GreenEggsFlowOutput> {
+  let promptText: string;
+
+  if (input.question === 'Screen: PRELIM_B') {
+    promptText = `Hooray! Hooray! You're on your way! You've passed the prelims, come what may! For pressing button {{buttonNumber}}, a treasure awaits, a list of questions to open the gates!`;
+  } else if (input.question === 'Screen: Q5') {
+    promptText = `Oh, the places you'll go, the things you will see! You've answered the questions, all five, with glee! With button {{buttonNumber}} as your guide and your key, a marvelous report is what you will see!`;
+  } else {
+    promptText = `The user was asked the question: "{{question}}". They selected button {{buttonNumber}}. Provide a one-word answer to the question, and then repeat that answer a number of times equal to the button number selected.`;
+  }
+
   const prompt = ai.definePrompt({
     name: 'greenEggsPrompt',
     input: {schema: GreenEggsFlowInputSchema},
     output: {schema: GreenEggsFlowOutputSchema},
-    prompt: `The user was asked the question: "{{question}}". They selected button {{buttonNumber}}. Provide a one-word answer to the question, and then repeat that answer a number of times equal to the button number selected.`,
+    prompt: promptText,
   });
 
   const {output} = await prompt(input);
