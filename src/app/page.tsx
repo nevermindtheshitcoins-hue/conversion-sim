@@ -7,8 +7,9 @@ import type {ActionResult} from '@/app/actions';
 import type {GreenEggsFlowOutput} from '@/ai/flows/green-eggs-flow';
 
 /* ----------------- Small atoms ----------------- */
-const Pill = ({label, onClick, active = false}) => (
+const Pill = ({id, label, onClick, active = false}) => (
   <button
+    id={id}
     onClick={onClick}
     className={`relative w-full select-none overflow-hidden rounded-full px-5 py-3 text-sm tracking-widest ${'cursor-pointer text-zinc-900 hover:brightness-110 active:translate-y-[1px]'}`}
     style={{
@@ -256,6 +257,7 @@ export default function MinimalPage() {
               {pills.map(p => (
                 <Pill
                   key={p}
+                  id={`pill-button-${p}`}
                   label={`BUTTON ${p}`}
                   onClick={() => setTempSelection(p)}
                   active={tempSelection === p}

@@ -1,7 +1,7 @@
 'use server';
 
 /**
- * @fileOverview Generates a response for the "Green Eggs and ???" prompt.
+ * Generates a response for the "Green Eggs and ???" prompt.
  *
  * - greenEggsFlow - A function that generates the response.
  * - GreenEggsFlowInput - The input type for the greenEggsFlow function.
