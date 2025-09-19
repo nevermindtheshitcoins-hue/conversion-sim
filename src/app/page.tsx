@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { Loader2 } from 'lucide-react';
-import { submitSelection } from '@/app/actions';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Loader2, RefreshCcw } from 'lucide-react';
+import { submitSelection, ActionResult } from '@/app/actions';
+import type { DiagnosePlantOutput } from '@/ai/flows/green-eggs-flow';
 
 const initialScreenFlow = [
   { id: 'INIT', content: 'Select Domain', type: 'QUESTION' },
@@ -31,22 +32,34 @@ function BadgeOK() {
 export default function MinimalPage() {
   const [screenFlow, setScreenFlow] = useState(initialScreenFlow);
   const [currentScreenIndex, setCurrentScreenIndex] = useState(0);
-  const [selections, setSelections] = useState<(number | null)[]>(new Array(screenFlow.length).fill(null));
+  const [selections, setSelections] = useState<(number | null)[]>(new Array(initialScreenFlow.length).fill(null));
   const [tempSelection, setTempSelection] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const currentScreen = screenFlow[currentScreenIndex];
-  const wasLoading = React.useRef<boolean>(false);
+  
+  const ticker = useMemo(
+    () => [
+      "ZIZZ ZAZZ",
+      "WHO HOO",
+      "FLEEP FLOOP",
+      "BAR BALLOO",
+      "YOPPITY YOP",
+      "GLUNK GO",
+    ],
+    []
+  );
 
   useEffect(() => {
-    if (wasLoading.current && !isLoading) {
-      if (currentScreen.type === 'LOADING') {
-        setCurrentScreenIndex((prevIndex) => prevIndex + 1);
-      }
+    // This effect runs when `isLoading` changes.
+    // When an API call completes (isLoading becomes false), we check if the current screen is a loading screen.
+    // If it is, we automatically advance to the next screen.
+    const wasLoading = !isLoading && screenFlow[currentScreenIndex].type === 'LOADING';
+    if (wasLoading) {
+      setCurrentScreenIndex((prevIndex) => prevIndex + 1);
     }
-    wasLoading.current = isLoading;
-  }, [isLoading, currentScreen.type, currentScreenIndex]);
+  }, [isLoading, screenFlow, currentScreenIndex]);
 
   const handleConfirm = async () => {
     if (tempSelection === null && currentScreen.type === 'QUESTION') return;
@@ -59,7 +72,7 @@ export default function MinimalPage() {
 
     if (currentScreen.apiCall) {
       setIsLoading(true);
-      setCurrentScreenIndex(currentScreenIndex + 1); // Move to loading screen
+      setCurrentScreenIndex(currentScreenIndex + 1); // Move to loading screen immediately
 
       const result = await submitSelection(tempSelection!, `Screen: ${currentScreen.id}`);
 
@@ -122,9 +135,18 @@ export default function MinimalPage() {
       setCurrentScreenIndex(Math.max(0, backScreenIndex));
     }
   };
+
+  const handleReset = () => {
+    setScreenFlow(initialScreenFlow);
+    setCurrentScreenIndex(0);
+    setSelections(new Array(initialScreenFlow.length).fill(null));
+    setTempSelection(null);
+    setError(null);
+    setIsLoading(false);
+  };
   
   const getScreenContent = () => {
-    if (currentScreen.type === 'LOADING' || isLoading) {
+    if (currentScreen.type === 'LOADING') {
       return (
         <div className="flex flex-col items-center justify-center gap-4 text-center">
           <Loader2 className="h-16 w-16 animate-spin text-emerald-400" />
@@ -143,23 +165,26 @@ export default function MinimalPage() {
         </div>
        )
     }
+    
+    if (currentScreen.type === 'REPORT') {
+        return (
+             <div className="text-center h-full flex flex-col justify-center">
+                <h2 className="text-2xl font-extrabold tracking-widest text-yellow-300 drop-shadow">REPORT</h2>
+                <p className="mt-2 text-sm tracking-[0.2em] text-emerald-300">Report Generated. Press Green Button to copy.</p>
+                <div className="mt-4 text-left text-sm bg-black/20 p-4 rounded-lg overflow-auto max-h-80">
+                    <pre className="whitespace-pre-wrap font-sans">{currentScreen.content}</pre>
+                </div>
+            </div>
+        )
+    }
 
     return (
         <div className="text-center">
             <h2 className="text-4xl md:text-5xl font-extrabold tracking-widest text-yellow-300 drop-shadow">{currentScreen.content}</h2>
-            <p className="mt-4 text-sm tracking-[0.35em] text-emerald-300">{currentScreen.type === 'REPORT' ? "Report Generated. Press Green Button to copy." : "GREEN MEANS GO GO"}</p>
+            <p className="mt-4 text-sm tracking-[0.35em] text-emerald-300">GREEN MEANS GO GO</p>
         </div>
     );
   };
-  
-  const tickerItems = [
-    "ZIZZ ZAZZ",
-    "WHO HOO",
-    "FLEEP FLOOP",
-    "BAR BALLOO",
-    "YOPPITY YOP",
-    "GLUNK GO",
-  ];
 
   return (
     <div className="min-h-screen w-full bg-[#0a0f12] text-slate-100 flex flex-col font-sans">
@@ -186,12 +211,12 @@ export default function MinimalPage() {
         <div className="relative py-2">
           <div className="flex w-max will-change-transform animate-marquee">
             <div className="flex whitespace-nowrap">
-              {tickerItems.map((t, i) => (
+              {ticker.map((t, i) => (
                 <span key={"a-" + i} className="mx-8 text-white/80">{t}</span>
               ))}
             </div>
             <div className="flex whitespace-nowrap" aria-hidden="true">
-              {tickerItems.map((t, i) => (
+              {ticker.map((t, i) => (
                 <span key={"b-" + i} className="mx-8 text-white/80">{t}</span>
               ))}
             </div>
@@ -241,10 +266,18 @@ export default function MinimalPage() {
             ))}
           </div>
 
-          {/* Bottom-right R/G cluster */}
-          <div className="mt-4 grid grid-cols-2 gap-3 items-end">
+          {/* Bottom-right button cluster */}
+          <div className="mt-4 grid grid-cols-3 gap-3 items-end">
             <button
-              aria-label="Abort"
+              aria-label="Reset"
+              className="rounded-full aspect-square bg-gray-600/50 shadow-[0_0_20px_rgba(200,200,200,0.4)] border border-gray-400/30 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-cyan-400/70 hover:bg-gray-600/80"
+              onClick={handleReset}
+              disabled={isLoading}
+            >
+              <RefreshCcw className="h-1/2 w-1/2 text-gray-300" />
+            </button>
+            <button
+              aria-label="Back/Abort"
               className="rounded-full aspect-square bg-red-600/80 shadow-[0_0_30px_rgba(220,38,38,0.7)] border border-red-300/20 focus:outline-none focus:ring-2 focus:ring-red-400/70"
               onClick={handleBack}
               disabled={isLoading}
