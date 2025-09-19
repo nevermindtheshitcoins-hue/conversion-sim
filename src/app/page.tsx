@@ -54,13 +54,14 @@ const RoundButton = ({tone = 'green', onClick, disabled = false}) => {
     green: {base: '#1fd270', dark: '#0f8c49', glow: '#36ff98'},
     red: {base: '#ff4b4b', dark: '#a61b1b', glow: '#ff7777'},
   };
+  const selectedColor = colors[tone] || colors.green;
   return (
     <button
       onClick={onClick}
       disabled={disabled}
       className={`relative grid h-20 w-20 place-items-center rounded-full text-white shadow-[inset_0_-8px_12px_rgba(0,0,0,.45),_0_12px_24px_rgba(0,0,0,.6)] active:translate-y-[1px] disabled:cursor-not-allowed disabled:opacity-50`}
       style={{
-        background: `radial-gradient(100% 100% at 30% 30%, ${colors[tone].base}, ${colors[tone].dark})`,
+        background: `radial-gradient(100% 100% at 30% 30%, ${selectedColor.base}, ${selectedColor.dark})`,
       }}
     >
       <span
@@ -77,7 +78,7 @@ const RoundButton = ({tone = 'green', onClick, disabled = false}) => {
       <span
         aria-hidden
         className="absolute -inset-1 rounded-full blur-md"
-        style={{background: `radial-gradient(60% 60% at 50% 50%, ${colors[tone].glow}, transparent)`}}
+        style={{background: `radial-gradient(60% 60% at 50% 50%, ${selectedColor.glow}, transparent)`}}
       />
     </button>
   );
