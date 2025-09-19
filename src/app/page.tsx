@@ -3,10 +3,7 @@
 import React, {useState, useEffect} from 'react';
 import {Loader2} from 'lucide-react';
 import {submitSelection} from '@/app/actions';
-import type {ActionResult} from '@/app/actions';
-import type {GreenEggsFlowOutput} from '@/ai/flows/green-eggs-flow';
 
-/* ----------------- Small atoms ----------------- */
 const Pill = ({id, label, onClick, active = false}) => (
   <button
     id={id}
@@ -86,7 +83,6 @@ const RoundButton = ({tone = 'green', onClick, disabled = false}) => {
   );
 };
 
-/* ----------------- Engraved placard title bar ----------------- */
 const TitleBar = () => (
   <div className="rounded-xl border border-zinc-700 bg-[radial-gradient(140%_180%_at_30%_-40%,#b8bec6,#6f7984_45%,#2b3239_70%,#171a1e)] p-3 shadow-[inset_0_1px_0_rgba(255,255,255,.35),inset_0_-8px_16px_rgba(0,0,0,.35)]">
     <div className="flex items-center justify-center gap-3">
@@ -119,7 +115,6 @@ const initialScreenFlow = [
   {id: 'REPORT', content: '', type: 'REPORT'},
 ];
 
-/* ----------------- Main component ----------------- */
 export default function MinimalPage() {
   const [screenFlow, setScreenFlow] = useState(initialScreenFlow);
   const [currentScreenIndex, setCurrentScreenIndex] = useState(0);
@@ -129,18 +124,17 @@ export default function MinimalPage() {
   const [error, setError] = useState<string | null>(null);
   
   const currentScreen = screenFlow[currentScreenIndex];
-  const previousScreenId = React.useRef<string | null>(null);
+  const previousScreenType = React.useRef<string | null>(null);
 
   useEffect(() => {
     const wasLoading =
-      previousScreenId.current === 'LOADING_QUESTIONS' ||
-      previousScreenId.current === 'LOADING_REPORT';
+      previousScreenType.current === 'LOADING';
       
     if (wasLoading && !isLoading) {
       setCurrentScreenIndex((prevIndex) => prevIndex + 1);
     }
-    previousScreenId.current = currentScreen.id;
-  }, [isLoading, currentScreen.id, screenFlow]);
+    previousScreenType.current = currentScreen.type;
+  }, [isLoading, currentScreen.type, screenFlow]);
 
   
   const handleConfirm = async () => {
@@ -246,7 +240,6 @@ export default function MinimalPage() {
       <div className="mx-auto max-w-4xl rounded-2xl border border-zinc-700 bg-[radial-gradient(150%_120%_at_30%_10%,#3b434b,#181b1f)] p-4 shadow-[inset_0_0_20px_rgba(0,0,0,.7),_0_40px_120px_rgba(0,0,0,.8)]">
         <TitleBar />
         <div className="mt-4 grid grid-cols-1 md:grid-cols-[1fr_240px] gap-4">
-          {/* Screen */}
           <div className="relative flex min-h-[300px] items-center justify-center overflow-hidden rounded-xl border border-zinc-800 bg-black p-10 shadow-[inset_0_0_50px_rgba(0,255,150,.07),_0_0_30px_rgba(0,255,150,.06)]">
             <div
               className="pointer-events-none absolute inset-0 rounded-xl opacity-35"
@@ -262,7 +255,6 @@ export default function MinimalPage() {
             </div>
           </div>
 
-          {/* Right column: pills + big buttons */}
           <div className="flex flex-col justify-between gap-4">
             <div className="flex flex-col gap-3">
               {pills.map(p => (
