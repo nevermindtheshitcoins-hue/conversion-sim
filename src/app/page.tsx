@@ -277,14 +277,16 @@ export default function MinimalPage() {
 
           {/* Bottom-right button cluster */}
           <div className="mt-4 grid grid-cols-3 gap-3 items-end">
-            <button
-              aria-label="Reset"
-              className="rounded-full aspect-square bg-gray-600/50 shadow-[0_0_20px_rgba(200,200,200,0.4)] border border-gray-400/30 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-cyan-400/70 hover:bg-gray-600/80"
-              onClick={handleReset}
-              disabled={isLoading}
-            >
-              <RefreshCcw className="h-1/2 w-1/2 text-gray-300" />
-            </button>
+             <div className="flex items-center justify-center">
+              <button
+                aria-label="Reset"
+                className="w-1/2 h-1/2 aspect-square rounded-full bg-yellow-800/50 shadow-[0_0_10px_rgba(250,204,21,0.4)] border border-yellow-400/30 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-yellow-400/70 hover:bg-yellow-800/80"
+                onClick={handleReset}
+                disabled={isLoading}
+              >
+                <RefreshCcw className="h-1/2 w-1/2 text-yellow-300" />
+              </button>
+            </div>
             <button
               aria-label="Back/Abort"
               className="rounded-full aspect-square bg-red-600/80 shadow-[0_0_30px_rgba(220,38,38,0.7)] border border-red-300/20 focus:outline-none focus:ring-2 focus:ring-red-400/70"
