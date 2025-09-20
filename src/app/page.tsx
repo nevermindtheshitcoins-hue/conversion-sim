@@ -1,22 +1,21 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
-import { Loader2, RefreshCcw } from 'lucide-react';
-import { submitSelection, ActionResult } from '@/app/actions';
-import type { DiagnosePlantOutput } from '@/ai/flows/green-eggs-flow';
+import React, {useMemo, useState, useEffect} from 'react';
+import {Loader2, RefreshCcw} from 'lucide-react';
+import {submitSelection} from '@/app/actions';
 
 const initialScreenFlow = [
-  { id: 'INIT', content: 'Select Domain', type: 'QUESTION' },
-  { id: 'PRELIM_A', content: 'Select Use Case', type: 'QUESTION' },
-  { id: 'PRELIM_B', content: 'Select Pain Points', type: 'QUESTION', apiCall: true },
-  { id: 'LOADING_QUESTIONS', content: 'Generating Questions...', type: 'LOADING' },
-  { id: 'Q1', content: 'Question 1', type: 'QUESTION' },
-  { id: 'Q2', content: 'Question 2', type: 'QUESTION' },
-  { id: 'Q3', content: 'Question 3', type: 'QUESTION' },
-  { id: 'Q4', content: 'Question 4', type: 'QUESTION' },
-  { id: 'Q5', content: 'Question 5', type: 'QUESTION', apiCall: true },
-  { id: 'LOADING_REPORT', content: 'Generating Report...', type: 'LOADING' },
-  { id: 'REPORT', content: '', type: 'REPORT' },
+  {id: 'INIT', content: 'Select Domain', type: 'QUESTION'},
+  {id: 'PRELIM_A', content: 'Select Use Case', type: 'QUESTION'},
+  {id: 'PRELIM_B', content: 'Select Pain Points', type: 'QUESTION', apiCall: true},
+  {id: 'LOADING_QUESTIONS', content: 'Generating Questions...', type: 'LOADING'},
+  {id: 'Q1', content: 'Question 1', type: 'QUESTION'},
+  {id: 'Q2', content: 'Question 2', type: 'QUESTION'},
+  {id: 'Q3', content: 'Question 3', type: 'QUESTION'},
+  {id: 'Q4', content: 'Question 4', type: 'QUESTION'},
+  {id: 'Q5', content: 'Question 5', type: 'QUESTION', apiCall: true},
+  {id: 'LOADING_REPORT', content: 'Generating Report...', type: 'LOADING'},
+  {id: 'REPORT', content: '', type: 'REPORT'},
 ];
 
 const domains = ['SNEETCH', 'THNEED', 'ZAX', 'YOP', 'GLUNK'];
@@ -32,22 +31,17 @@ function BadgeOK() {
 export default function MinimalPage() {
   const [screenFlow, setScreenFlow] = useState(initialScreenFlow);
   const [currentScreenIndex, setCurrentScreenIndex] = useState(0);
-  const [selections, setSelections] = useState<(number | null)[]>(new Array(initialScreenFlow.length).fill(null));
+  const [selections, setSelections] = useState<(number | null)[]>(
+    new Array(initialScreenFlow.length).fill(null)
+  );
   const [tempSelection, setTempSelection] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const currentScreen = screenFlow[currentScreenIndex];
-  
+
   const ticker = useMemo(
-    () => [
-      "ZIZZ ZAZZ",
-      "WHO HOO",
-      "FLEEP FLOOP",
-      "BAR BALLOO",
-      "YOPPITY YOP",
-      "GLUNK GO",
-    ],
+    () => ['ZIZZ ZAZZ', 'WHO HOO', 'FLEEP FLOOP', 'BAR BALLOO', 'YOPPITY YOP', 'GLUNK GO'],
     []
   );
 
@@ -56,7 +50,7 @@ export default function MinimalPage() {
     // When an API call completes (isLoading becomes false), we check if the current screen is a loading screen.
     // If it is, we automatically advance to the next screen.
     if (!isLoading && screenFlow[currentScreenIndex].type === 'LOADING') {
-      setCurrentScreenIndex((prevIndex) => prevIndex + 1);
+      setCurrentScreenIndex(prevIndex => prevIndex + 1);
     }
   }, [isLoading, screenFlow, currentScreenIndex]);
 
@@ -66,7 +60,7 @@ export default function MinimalPage() {
     const newSelections = [...selections];
     newSelections[currentScreenIndex] = tempSelection;
     setSelections(newSelections);
-    
+
     setError(null);
 
     if (currentScreen.apiCall) {
@@ -79,14 +73,14 @@ export default function MinimalPage() {
         const newFlow = [...screenFlow];
         if (result.data.questions) {
           result.data.questions.forEach((q, i) => {
-            const screenIndex = newFlow.findIndex((s) => s.id === `Q${i + 1}`);
+            const screenIndex = newFlow.findIndex(s => s.id === `Q${i + 1}`);
             if (screenIndex !== -1) {
               newFlow[screenIndex].content = q;
             }
           });
         }
 
-        const reportScreenIndex = newFlow.findIndex((s) => s.id === 'REPORT');
+        const reportScreenIndex = newFlow.findIndex(s => s.id === 'REPORT');
         if (currentScreen.id === 'Q5' && reportScreenIndex !== -1) {
           newFlow[reportScreenIndex].content = result.data.response;
         }
@@ -101,7 +95,7 @@ export default function MinimalPage() {
       setTempSelection(null);
       return;
     }
-    
+
     setTempSelection(null);
 
     if (currentScreen.type === 'REPORT') {
@@ -143,7 +137,7 @@ export default function MinimalPage() {
     setError(null);
     setIsLoading(false);
   };
-  
+
   const getScreenContent = () => {
     if (currentScreen.type === 'LOADING') {
       return (
@@ -157,31 +151,39 @@ export default function MinimalPage() {
     }
 
     if (error) {
-       return (
+      return (
         <div className="text-center">
-            <h2 className="text-4xl md:text-5xl font-extrabold tracking-widest text-red-400 drop-shadow">ERROR</h2>
-            <p className="mt-4 text-sm tracking-[0.35em] text-white">{error}</p>
+          <h2 className="text-4xl md:text-5xl font-extrabold tracking-widest text-red-400 drop-shadow">
+            ERROR
+          </h2>
+          <p className="mt-4 text-sm tracking-[0.35em] text-white">{error}</p>
         </div>
-       )
+      );
     }
-    
+
     if (currentScreen.type === 'REPORT') {
-        return (
-             <div className="text-center h-full flex flex-col justify-center">
-                <h2 className="text-2xl font-extrabold tracking-widest text-yellow-300 drop-shadow">REPORT</h2>
-                <p className="mt-2 text-sm tracking-[0.2em] text-emerald-300">Report Generated. Press Green Button to copy.</p>
-                <div className="mt-4 text-left text-sm bg-black/20 p-4 rounded-lg overflow-y-auto max-h-80">
-                    <pre className="whitespace-pre-wrap font-sans">{currentScreen.content}</pre>
-                </div>
-            </div>
-        )
+      return (
+        <div className="text-center h-full flex flex-col justify-center">
+          <h2 className="text-2xl font-extrabold tracking-widest text-yellow-300 drop-shadow">
+            REPORT
+          </h2>
+          <p className="mt-2 text-sm tracking-[0.2em] text-emerald-300">
+            Report Generated. Press Green Button to copy.
+          </p>
+          <div className="mt-4 text-left text-sm bg-black/20 p-4 rounded-lg overflow-y-auto max-h-80">
+            <pre className="whitespace-pre-wrap font-sans">{currentScreen.content}</pre>
+          </div>
+        </div>
+      );
     }
 
     return (
-        <div className="text-center">
-            <h2 className="text-4xl md:text-5xl font-extrabold tracking-widest text-yellow-300 drop-shadow">{currentScreen.content}</h2>
-            <p className="mt-4 text-sm tracking-[0.35em] text-emerald-300">GREEN MEANS GO GO</p>
-        </div>
+      <div className="text-center">
+        <h2 className="text-4xl md:text-5xl font-extrabold tracking-widest text-yellow-300 drop-shadow">
+          {currentScreen.content}
+        </h2>
+        <p className="mt-4 text-sm tracking-[0.35em] text-emerald-300">GREEN MEANS GO GO</p>
+      </div>
     );
   };
 
@@ -211,12 +213,16 @@ export default function MinimalPage() {
           <div className="flex w-max will-change-transform animate-marquee">
             <div className="flex whitespace-nowrap">
               {ticker.map((t, i) => (
-                <span key={"a-" + i} className="mx-8 text-white/80">{t}</span>
+                <span key={'a-' + i} className="mx-8 text-white/80">
+                  {t}
+                </span>
               ))}
             </div>
             <div className="flex whitespace-nowrap" aria-hidden="true">
               {ticker.map((t, i) => (
-                <span key={"b-" + i} className="mx-8 text-white/80">{t}</span>
+                <span key={'b-' + i} className="mx-8 text-white/80">
+                  {t}
+                </span>
               ))}
             </div>
           </div>
@@ -227,36 +233,40 @@ export default function MinimalPage() {
       <main className="flex-1 grid grid-cols-12 gap-6 p-6">
         {/* Machine display area */}
         <section className="col-span-9 rounded-2xl bg-[#0b1114] border border-white/10 shadow-2xl relative overflow-hidden">
-          <div className="absolute inset-0 opacity-[0.08] pointer-events-none bg-scanlines" />
+          <div
+            className="absolute inset-0 opacity-[0.08] pointer-events-none"
+            style={{
+              backgroundImage:
+                'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.35) 2px, rgba(255,255,255,0.35) 3px)',
+            }}
+          />
           <div className="absolute inset-0 bg-gradient-to-b from-white/5 via-transparent to-white/5" />
-          <div className="relative h-full grid place-items-center p-10">
-            {getScreenContent()}
-          </div>
+          <div className="relative h-full grid place-items-center p-10">{getScreenContent()}</div>
         </section>
 
         {/* Sidebar with selections and R/G */}
         <aside className="col-span-3 flex flex-col">
           <div className="flex-1 space-y-[0.9rem]">
-             {domains.map((d, i) => (
+            {domains.map((d, i) => (
               <button
                 key={d}
                 onClick={() => setTempSelection(i + 1)}
                 disabled={isLoading || currentScreen.type === 'REPORT'}
                 className={`w-full rounded-2xl py-[1.2rem] px-5 grid place-items-center border transition shadow-lg focus:outline-none focus:ring-2 focus:ring-cyan-400/60 disabled:opacity-50 disabled:cursor-not-allowed ${
                   tempSelection === i + 1
-                    ? "bg-slate-800/90 border-emerald-400/30 ring-2 ring-emerald-400/70"
-                    : "bg-slate-800/60 border-white/10 hover:bg-slate-800/80 hover:border-white/20"
+                    ? 'bg-slate-800/90 border-emerald-400/30 ring-2 ring-emerald-400/70'
+                    : 'bg-slate-800/60 border-white/10 hover:bg-slate-800/80 hover:border-white/20'
                 }`}
               >
                 <span
                   className={`uppercase text-xs tracking-widest ${
-                    tempSelection === i + 1 ? "text-emerald-300" : "text-yellow-300"
+                    tempSelection === i + 1 ? 'text-emerald-300' : 'text-yellow-300'
                   }`}
                   style={{
                     textShadow:
                       tempSelection === i + 1
-                        ? "0 0 10px rgba(16,185,129,0.9), 0 0 18px rgba(16,185,129,0.5)"
-                        : "0 0 8px rgba(253,224,71,0.8), 0 0 14px rgba(253,224,71,0.4)",
+                        ? '0 0 10px rgba(16,185,129,0.9), 0 0 18px rgba(16,185,129,0.5)'
+                        : '0 0 8px rgba(253,224,71,0.8), 0 0 14px rgba(253,224,71,0.4)',
                   }}
                 >
                   {d}
@@ -286,8 +296,8 @@ export default function MinimalPage() {
               disabled={isLoading || (currentScreen.type === 'QUESTION' && tempSelection === null)}
               className={`rounded-full aspect-square border focus:outline-none focus:ring-2 focus:ring-emerald-400/70 transition ${
                 (tempSelection !== null || currentScreen.type === 'REPORT') && !isLoading
-                  ? "bg-emerald-500 shadow-[0_0_34px_rgba(16,185,129,0.8)] border-emerald-200/40"
-                  : "bg-emerald-900/30 border-white/10 opacity-50 cursor-not-allowed"
+                  ? 'bg-emerald-500 shadow-[0_0_34px_rgba(16,185,129,0.8)] border-emerald-200/40'
+                  : 'bg-emerald-900/30 border-white/10 opacity-50 cursor-not-allowed'
               }`}
               onClick={handleConfirm}
             />
