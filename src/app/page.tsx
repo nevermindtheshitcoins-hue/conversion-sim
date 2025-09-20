@@ -246,15 +246,15 @@ export default function MinimalPage() {
 
         {/* Sidebar with selections and R/G */}
         <aside className="col-span-3 flex flex-col">
-          <div className="flex-1 space-y-[0.9rem]">
+          <div className="flex-1 space-y-4">
             {domains.map((d, i) => (
               <button
                 key={d}
                 onClick={() => setTempSelection(i + 1)}
                 disabled={isLoading || currentScreen.type === 'REPORT'}
-                className={`w-full rounded-2xl py-[1.2rem] px-5 grid place-items-center border transition shadow-lg focus:outline-none focus:ring-2 focus:ring-cyan-400/60 disabled:opacity-50 disabled:cursor-not-allowed ${
+                className={`w-full rounded-2xl py-6 px-5 grid place-items-center border transition shadow-lg focus:outline-none focus:ring-2 focus:ring-cyan-400/60 active:translate-y-px disabled:opacity-50 disabled:cursor-not-allowed ${
                   tempSelection === i + 1
-                    ? 'bg-slate-800/90 border-emerald-400/30 ring-2 ring-emerald-400/70'
+                    ? 'bg-slate-800/90 border-emerald-400/30 ring-2 ring-emerald-400/70 shadow-inner'
                     : 'bg-slate-800/60 border-white/10 hover:bg-slate-800/80 hover:border-white/20'
                 }`}
               >
@@ -277,10 +277,10 @@ export default function MinimalPage() {
 
           {/* Bottom-right button cluster */}
           <div className="mt-4 grid grid-cols-3 gap-3 items-end">
-             <div className="flex items-center justify-center">
+            <div className="flex items-center justify-center">
               <button
                 aria-label="Reset"
-                className="w-1/2 h-1/2 aspect-square rounded-full bg-yellow-800/50 shadow-[0_0_10px_rgba(250,204,21,0.4)] border border-yellow-400/30 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-yellow-400/70 hover:bg-yellow-800/80"
+                className="w-1/2 h-1/2 aspect-square rounded-full bg-yellow-800/50 shadow-[0_0_10px_rgba(250,204,21,0.4)] border border-yellow-400/30 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-yellow-400/70 hover:bg-yellow-800/80 active:translate-y-px"
                 onClick={handleReset}
                 disabled={isLoading}
               >
@@ -289,14 +289,14 @@ export default function MinimalPage() {
             </div>
             <button
               aria-label="Back/Abort"
-              className="rounded-full aspect-square bg-red-600/80 shadow-[0_0_30px_rgba(220,38,38,0.7)] border border-red-300/20 focus:outline-none focus:ring-2 focus:ring-red-400/70"
+              className="rounded-full aspect-square bg-red-600/80 shadow-[0_0_30px_rgba(220,38,38,0.7)] border border-red-300/20 focus:outline-none focus:ring-2 focus:ring-red-400/70 active:translate-y-px"
               onClick={handleBack}
               disabled={isLoading}
             />
             <button
               aria-label="Confirm"
               disabled={isLoading || (currentScreen.type === 'QUESTION' && tempSelection === null)}
-              className={`rounded-full aspect-square border focus:outline-none focus:ring-2 focus:ring-emerald-400/70 transition ${
+              className={`rounded-full aspect-square border focus:outline-none focus:ring-2 focus:ring-emerald-400/70 transition active:translate-y-px ${
                 (tempSelection !== null || currentScreen.type === 'REPORT') && !isLoading
                   ? 'bg-emerald-500 shadow-[0_0_34px_rgba(16,185,129,0.8)] border-emerald-200/40'
                   : 'bg-emerald-900/30 border-white/10 opacity-50 cursor-not-allowed'
