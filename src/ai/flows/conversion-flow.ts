@@ -56,7 +56,7 @@ class OpenAIService {
     this.baseUrl = 'https://api.openai.com/v1';
   }
 
-  async generateResponse(input: DiagnoseConversionInput): Promise<DiagnoseConversionOutput> {
+public async generateResponse(input: DiagnoseConversionInput): Promise<DiagnoseConversionOutput> {
     const prompt = this.buildPrompt(input);
     const response = await fetch(`${this.baseUrl}/chat/completions`, {
       method: 'POST',
@@ -183,8 +183,8 @@ const aiService = new AIService();
 
 // Exported function used by the rest of the app
 export async function diagnoseConversion(input: DiagnoseConversionInput): Promise<DiagnoseConversionOutput> {
-  if (!input.buttonNumber || input.buttonNumber < 1 || input.buttonNumber > 5) {
-    throw new Error('Invalid button number. Must be between 1 and 5.');
+  if (!Number.isInteger(input.buttonNumber) || input.buttonNumber < 1 || input.buttonNumber > 5) {
+    throw new Error('Invalid button number. Must be an integer between 1 and 5.');
   }
   if (!input.question || typeof input.question !== 'string') {
     throw new Error('Invalid question parameter.');
@@ -198,7 +198,7 @@ export async function diagnoseConversion(input: DiagnoseConversionInput): Promis
       if (!Array.isArray(result.questions) || result.questions.length !== 5) {
         throw new Error('Invalid AI response: questions must be an array of 5 strings');
       }
-      if (!result.questions.every(q => typeof q === 'string' && q.length > 0)) {
+      if (!result.questions.every((q: string) => typeof q === 'string' && q.length > 0)) {
         throw new Error('Invalid AI response: all questions must be non-empty strings');
       }
     }

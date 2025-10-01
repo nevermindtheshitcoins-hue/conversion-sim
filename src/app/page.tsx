@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { Loader2, RefreshCcw } from 'lucide-react';
 import { submitSelection } from '@/app/actions';
 
@@ -25,27 +25,31 @@ interface Screen {
 
 type FlowState = 'initial' | 'collecting' | 'generating' | 'complete' | 'error';
 
+const INITIAL_SCREENS: Screen[] = [
+  { id: 'INIT', content: 'Select Domain', type: 'QUESTION' },
+  { id: 'PRELIM_A', content: 'Select Use Case', type: 'QUESTION' },
+  { id: 'PRELIM_B', content: 'Select Pain Points', type: 'QUESTION', apiCall: true },
+  { id: 'LOADING_QUESTIONS', content: 'Generating Questions...', type: 'LOADING' },
+  { id: 'Q1', content: 'Question 1', type: 'QUESTION' },
+  { id: 'Q2', content: 'Question 2', type: 'QUESTION' },
+  { id: 'Q3', content: 'Question 3', type: 'QUESTION' },
+  { id: 'Q4', content: 'Question 4', type: 'QUESTION' },
+  { id: 'Q5', content: 'Question 5', type: 'QUESTION', apiCall: true },
+  { id: 'LOADING_REPORT', content: 'Generating Report...', type: 'LOADING' },
+  { id: 'REPORT', content: '', type: 'REPORT' },
+];
+
 const useScreenFlow = () => {
-  const [screens] = useState<Screen[]>([
-    { id: 'INIT', content: 'Select Domain', type: 'QUESTION' },
-    { id: 'PRELIM_A', content: 'Select Use Case', type: 'QUESTION' },
-    { id: 'PRELIM_B', content: 'Select Pain Points', type: 'QUESTION', apiCall: true },
-    { id: 'LOADING_QUESTIONS', content: 'Generating Questions...', type: 'LOADING' },
-    { id: 'Q1', content: 'Question 1', type: 'QUESTION' },
-    { id: 'Q2', content: 'Question 2', type: 'QUESTION' },
-    { id: 'Q3', content: 'Question 3', type: 'QUESTION' },
-    { id: 'Q4', content: 'Question 4', type: 'QUESTION' },
-    { id: 'Q5', content: 'Question 5', type: 'QUESTION', apiCall: true },
-    { id: 'LOADING_REPORT', content: 'Generating Report...', type: 'LOADING' },
-    { id: 'REPORT', content: '', type: 'REPORT' },
-  ]);
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [flowState, setFlowState] = useState<FlowState>('initial');
-  const [dynamicScreens, setDynamicScreens] = useState<Screen[]>(screens);
+  const [dynamicScreens, setDynamicScreens] = useState<Screen[]>(INITIAL_SCREENS);
 
   const currentScreen = dynamicScreens[currentIndex];
-  const progress = Math.round((currentIndex / (dynamicScreens.length - 1)) * 100);
+  const progress = useMemo(() => 
+    Math.round((currentIndex / (dynamicScreens.length - 1)) * 100),
+    [currentIndex, dynamicScreens.length]
+  );
 
   const updateScreenContent = useCallback((screenId: string, content: string) => {
     setDynamicScreens(prev =>
@@ -81,8 +85,8 @@ const useScreenFlow = () => {
   const reset = useCallback(() => {
     setCurrentIndex(0);
     setFlowState('initial');
-    setDynamicScreens(screens);
-  }, [screens]);
+    setDynamicScreens(INITIAL_SCREENS);
+  }, []);
 
   return {
     currentScreen,
@@ -120,6 +124,7 @@ const useSelectionState = () => {
 
   const recordSelection = useCallback((index: number, selection: number) => {
     setSelections(prev => {
+      if (prev[index] === selection) return prev;
       const newSelections = [...prev];
       newSelections[index] = selection;
       return newSelections;
@@ -128,6 +133,7 @@ const useSelectionState = () => {
 
   const clearSelection = useCallback((index: number) => {
     setSelections(prev => {
+      if (prev[index] === null) return prev;
       const newSelections = [...prev];
       newSelections[index] = null;
       return newSelections;
