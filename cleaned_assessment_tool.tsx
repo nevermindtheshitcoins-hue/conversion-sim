@@ -240,7 +240,7 @@ const SelectionButtons = ({
       {options.map((option, index) => {
         const selected = isSelected(index + 1);
         const selectionCount = Array.isArray(tempSelection) ? tempSelection.length : (tempSelection ? 1 : 0);
-        const isMaxed = multiSelect && maxSelections && selectionCount >= maxSelections && !selected;
+        const isMaxed = Boolean(multiSelect && maxSelections && selectionCount >= maxSelections && !selected);
         
         return (
           <button
@@ -380,7 +380,8 @@ const useConversionLogic = () => {
       screenFlow.goToNext();
 
       try {
-        const result = await submitSelection(tempSelection, `Screen: ${currentScreen.id}`);
+        const selectionValue = Array.isArray(tempSelection) ? tempSelection[0] : tempSelection;
+        const result = await submitSelection(selectionValue, `Screen: ${currentScreen.id}`);
         
         if (result?.success) {
           if (currentScreen.id === 'PRELIM_B' && result.data.questions) {
@@ -543,7 +544,7 @@ export default function ConversionTool() {
           />
           <div className="absolute inset-0 bg-gradient-to-b from-white/5 via-transparent to-white/5" />
           <div className="relative h-full grid place-items-center p-6 md:p-10">
-            {renderContent()}
+            <ContentRenderer currentScreen={currentScreen} tempSelection={tempSelection} error={error} />
           </div>
         </section>
 

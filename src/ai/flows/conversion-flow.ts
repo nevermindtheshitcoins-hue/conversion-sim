@@ -1,7 +1,7 @@
 /*
  * Multi‑provider AI service for the conversion tool.
  *
- * This module exposes a diagnosePlant function that accepts a
+ * This module exposes a diagnoseConversion function that accepts a
  * button number and question context and returns either a list of
  * five questions (for the prelim pain points screen) or a final
  * report (for the last question) along with a response string.
@@ -88,7 +88,7 @@ class OpenAIService {
       throw new Error('No response content from OpenAI');
     }
     try {
-      return JSON.parse(content) as DiagnosePlantOutput;
+      return JSON.parse(content) as DiagnoseConversionOutput;
     } catch (parseError) {
       throw new Error('Invalid JSON response from OpenAI');
     }
@@ -105,35 +105,10 @@ class OpenAIService {
   }
 }
 
-// Gemini service wrapper.  This integrates with the existing genkit
-// configuration.  It defines prompts with input and output schemas
-// and executes them via the genkit runtime.
+// Gemini service wrapper - temporarily disabled to avoid ES module issues
 class GeminiService {
-  private ai: any;
-  constructor() {
-    const { ai } = require('@/ai/genkit');
-    this.ai = ai;
-  }
   async generateResponse(input: DiagnoseConversionInput): Promise<DiagnoseConversionOutput> {
-    const prompt = this.buildGeminiPrompt(input);
-    const outputSchema = input.question === 'Screen: PRELIM_B' ? DiagnoseConversionOutputSchema : DiagnoseConversionOutputSchema.partial();
-    const promptFunction = this.ai.definePrompt({
-      name: 'conversionPrompt',
-      input: { schema: DiagnoseConversionInputSchema },
-      output: { schema: outputSchema },
-      prompt: prompt,
-    });
-    const { output } = await promptFunction(input);
-    return output!;
-  }
-  private buildGeminiPrompt(input: DiagnoseConversionInput): string {
-    if (input.question === 'Screen: PRELIM_B') {
-      return `Professional assessment: visitor selected button {{buttonNumber}} for pain points. Generate JSON with brief encouraging response and 5 targeted questions for lead qualification.`;
-    }
-    if (input.question === 'Screen: Q5') {
-      return `Generate professional business assessment report for button {{buttonNumber}}. Provide actionable insights, recommendations, and clear next steps in 200-300 words.`;
-    }
-    return `Visitor selected button {{buttonNumber}} for "{{question}}". Provide brief positive acknowledgment building momentum.`;
+    throw new Error('Gemini service temporarily disabled');
   }
 }
 
@@ -144,11 +119,13 @@ class AIService {
   private openAI: OpenAIService;
   private gemini: GeminiService;
   private config: AIServiceConfig;
+
   constructor() {
     this.openAI = new OpenAIService();
     this.gemini = new GeminiService();
     this.config = AI_CONFIG;
   }
+
   async generateResponse(input: DiagnoseConversionInput): Promise<DiagnoseConversionOutput> {
     for (let attempt = 0; attempt < this.config.maxRetries; attempt++) {
       try {
@@ -176,6 +153,7 @@ class AIService {
     }
     return this.generateFallbackResponse(input);
   }
+
   private generateFallbackResponse(input: DiagnoseConversionInput): DiagnoseConversionOutput {
     if (input.question === 'Screen: PRELIM_B') {
       return {
@@ -200,11 +178,10 @@ class AIService {
   }
 }
 
-// Singleton instance to avoid reinitialising services on each call
+// Singleton instance
 const aiService = new AIService();
 
-// Exported function used by the rest of the app.  It validates
-// input and output and throws descriptive errors when invalid.
+// Exported function used by the rest of the app
 export async function diagnoseConversion(input: DiagnoseConversionInput): Promise<DiagnoseConversionOutput> {
   if (!input.buttonNumber || input.buttonNumber < 1 || input.buttonNumber > 5) {
     throw new Error('Invalid button number. Must be between 1 and 5.');
