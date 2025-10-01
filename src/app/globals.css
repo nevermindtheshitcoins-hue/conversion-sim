@@ -30,7 +30,6 @@
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
   }
-
   .dark {
     --background: 240 10% 3.9%;
     --foreground: 0 0% 98%;
@@ -65,7 +64,23 @@
 }
 
 @layer utilities {
-    .bg-scanlines {
-        background-image: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.35) 2px, rgba(255,255,255,0.35) 3px);
-    }
+  .bg-scanlines {
+    background-image: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255, 255, 255, 0.35) 2px, rgba(255, 255, 255, 0.35) 3px);
+  }
+  /*
+   * Additional iframe-friendly utilities.  These ensure that the app
+   * fills the available space inside an iframe and prevents text
+   * selection on interactive elements when running inside a touch
+   * environment.
+   */
+  .iframe-safe {
+    min-height: 100vh;
+    min-width: 320px;
+  }
+  .no-select {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
 }
