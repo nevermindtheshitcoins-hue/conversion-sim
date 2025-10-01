@@ -1,108 +1,109 @@
-/*
- * Simple analytics helper for sending events to the parent iframe and
- * optionally local analytics providers.  This utility detects
- * whether the code is running within an iframe and posts messages
- * accordingly.  It also wraps Google Analytics and PostHog if
- * available on the window global.
- */
+import type { UserJourney } from './journey-tracker';
 
-export interface AnalyticsEvent {
-  type: string;
-  category?: string;
-  label?: string;
-  value?: number;
-  data?: any;
+interface AnalyticsPattern {
+  sessionId: string;
+  timestamp: number;
+  journey: {
+    screen: string;
+    option: number;
+    timeSpent: number;
+  }[];
+  totalTime: number;
+  completionRate: number;
 }
 
-class Analytics {
-  private isIframe: boolean;
-  private allowedOrigins: string[];
-  constructor() {
-    this.isIframe = window !== window.parent;
-    this.allowedOrigins = [
-      'https://localhost:3000',
-      'https://localhost:9002',
-      window.location.origin
-    ];
+class AnonymousAnalytics {
+  private patterns: AnalyticsPattern[] = [];
+
+  aggregateJourney(journey: UserJourney): AnalyticsPattern {
+    const pattern: AnalyticsPattern = {
+      sessionId: journey.sessionId,
+      timestamp: Date.now(),
+      journey: journey.responses.map((response, index) => ({
+        screen: response.screen,
+        option: response.buttonNumber,
+        timeSpent: this.calculateTimeSpent(journey.responses, index),
+      })),
+      totalTime: Date.now() - journey.metadata.startTime,
+      completionRate: journey.responses.length / journey.metadata.totalScreens,
+    };
+
+    this.patterns.push(pattern);
+    this.sendToAnalytics(pattern);
+    return pattern;
   }
-  track(event: AnalyticsEvent) {
-    console.log('Analytics Event:', event);
-    if (this.isIframe) {
-      const targetOrigin = this.allowedOrigins.find(origin => 
-        document.referrer.startsWith(origin)
-      ) || this.allowedOrigins[0];
-      
-      window.parent?.postMessage(
-        {
-          type: 'ANALYTICS_EVENT',
-          event,
-        },
-        targetOrigin
-      );
-    }
-    this.trackLocally(event);
+
+  private calculateTimeSpent(responses: any[], index: number): number {
+    if (index === 0) return responses[0].timestamp - Date.now();
+    return responses[index].timestamp - responses[index - 1].timestamp;
   }
-  private trackLocally(event: AnalyticsEvent) {
-    if (typeof (window as any).gtag !== 'undefined') {
-      (window as any).gtag('event', event.type, {
-        event_category: event.category,
-        event_label: event.label,
-        value: event.value,
-        custom_data: event.data,
+
+  private async sendToAnalytics(pattern: AnalyticsPattern) {
+    try {
+      // Send to your analytics endpoint
+      await fetch('/api/analytics', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'journey_pattern',
+          data: pattern,
+        }),
       });
+    } catch (error) {
+      console.warn('Analytics send failed:', error);
     }
-    if (typeof (window as any).posthog !== 'undefined') {
-      (window as any).posthog.capture(event.type, {
-        category: event.category,
-        label: event.label,
-        value: event.value,
-        ...event.data,
+  }
+
+  getAggregatedInsights() {
+    return {
+      totalSessions: this.patterns.length,
+      averageCompletionRate: this.patterns.reduce((sum, p) => sum + p.completionRate, 0) / this.patterns.length,
+      popularPaths: this.getMostCommonPaths(),
+      averageTimePerScreen: this.getAverageTimePerScreen(),
+    };
+  }
+
+  private getMostCommonPaths() {
+    const pathCounts = new Map<string, number>();
+    
+    this.patterns.forEach(pattern => {
+      const path = pattern.journey.map(j => `${j.screen}:${j.option}`).join('->');
+      pathCounts.set(path, (pathCounts.get(path) || 0) + 1);
+    });
+
+    return Array.from(pathCounts.entries())
+      .sort(([,a], [,b]) => b - a)
+      .slice(0, 5);
+  }
+
+  private getAverageTimePerScreen() {
+    const screenTimes = new Map<string, number[]>();
+    
+    this.patterns.forEach(pattern => {
+      pattern.journey.forEach(j => {
+        if (!screenTimes.has(j.screen)) {
+          screenTimes.set(j.screen, []);
+        }
+        screenTimes.get(j.screen)!.push(j.timeSpent);
       });
-    }
-  }
-  // Event helpers
-  trackAssessmentStarted() {
-    this.track({
-      type: 'assessment_started',
-      category: 'conversion',
-      label: 'tool_loaded',
     });
-  }
-  trackStepCompleted(step: number, selection: number) {
-    this.track({
-      type: 'step_completed',
-      category: 'engagement',
-      label: `step_${step}`,
-      value: selection,
+
+    const averages = new Map<string, number>();
+    screenTimes.forEach((times, screen) => {
+      const avg = times.reduce((sum, time) => sum + time, 0) / times.length;
+      averages.set(screen, avg);
     });
-  }
-  trackAssessmentCompleted(reportLength: number) {
-    this.track({
-      type: 'assessment_completed',
-      category: 'conversion',
-      label: 'report_generated',
-      value: reportLength,
-    });
-  }
-  trackError(error: string, context: string) {
-    this.track({
-      type: 'error_occurred',
-      category: 'technical',
-      label: context,
-      data: { error },
-    });
-  }
-  trackProviderFallback(fromProvider: string, toProvider: string) {
-    this.track({
-      type: 'ai_provider_fallback',
-      category: 'technical',
-      label: `${fromProvider}_to_${toProvider}`,
-    });
+
+    return Object.fromEntries(averages);
   }
 }
 
-export const analytics = new Analytics();
+export const analytics = new AnonymousAnalytics();
 
-export const useAnalytics = () => {
-  return analytics;
-};
+export function trackJourneyCompletion(journey: UserJourney) {
+  return analytics.aggregateJourney(journey);
+}
+
+export function getAnalyticsInsights() {
+  return analytics.getAggregatedInsights();
+}
