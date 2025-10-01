@@ -103,11 +103,11 @@ const useSelectionState = () => {
   const [tempSelection, setTempSelection] = useState<number | null>(null);
   const [multiSelections, setMultiSelections] = useState<number[]>([]);
 
-  const toggleMultiSelection = useCallback((selection: number) => {
+  const toggleMultiSelection = useCallback((selection: number, maxSelections = 5) => {
     setMultiSelections(prev => {
       if (prev.includes(selection)) {
         return prev.filter(s => s !== selection);
-      } else if (prev.length < 5) { // Max 5 selections
+      } else if (prev.length < maxSelections) {
         return [...prev, selection];
       }
       return prev;
@@ -140,33 +140,6 @@ const useSelectionState = () => {
     setMultiSelections([]); // Add this line
   }, []);
 
-  const useSelectionState = () => {
-  const [selections, setSelections] = useState<(number | null)[]>([]);
-  const [tempSelection, setTempSelection] = useState<number | null>(null);
-  const [multiSelections, setMultiSelections] = useState<number[]>([]);
-
-  // Add these new functions
-  const toggleMultiSelection = useCallback((selection: number) => {
-    setMultiSelections(prev => {
-      if (prev.includes(selection)) {
-        return prev.filter(s => s !== selection);
-      } else if (prev.length < 5) { // Max 5 selections
-        return [...prev, selection];
-      }
-      return prev;
-    });
-  }, []);
-
-  const clearMultiSelections = useCallback(() => {
-    setMultiSelections([]);
-  }, []);
-
-  const resetSelections = useCallback(() => {
-    setSelections([]);
-    setTempSelection(null);
-    setMultiSelections([]); 
-  }, []);
-
   return {
     selections,
     tempSelection,
@@ -177,16 +150,6 @@ const useSelectionState = () => {
     multiSelections,
     toggleMultiSelection,
     clearMultiSelections,
-  };
-};
-
-  return {
-    selections,
-    tempSelection,
-    setTempSelection,
-    recordSelection,
-    clearSelection,
-    resetSelections,
   };
 };
 
@@ -274,7 +237,8 @@ const SelectionButtons: React.FC<{
   onToggleMulti: (index: number) => void;
   disabled: boolean;
   isMultiSelect: boolean;
-}> = ({ tempSelection, multiSelections, onSelect, onToggleMulti, disabled, isMultiSelect }) => (
+  maxSelections: number;
+}> = ({ tempSelection, multiSelections, onSelect, onToggleMulti, disabled, isMultiSelect, maxSelections }) => (
   <div className="flex-1 space-y-4">
     {DOMAINS.map((domain, index) => {
       const buttonValue = index + 1;
@@ -317,7 +281,7 @@ const SelectionButtons: React.FC<{
     })}
     {isMultiSelect && (
       <p className="text-xs text-center text-white/60 mt-2">
-        {multiSelections.length}/5 selected
+        {multiSelections.length}/{maxSelections} selected
       </p>
     )}
   </div>
@@ -385,7 +349,16 @@ export default function ConversionTool() {
     clearMultiSelections, 
   } = selectionState;
 
-  const isMultiSelectScreen = currentScreen.id === 'PRELIM_B';
+  const getMultiSelectConfig = (screenId: string) => {
+    switch (screenId) {
+      case 'PRELIM_B': return { isMulti: true, maxSelections: 5 };
+      case 'Q3': return { isMulti: true, maxSelections: 3 };
+      default: return { isMulti: false, maxSelections: 1 };
+    }
+  };
+  
+  const multiSelectConfig = getMultiSelectConfig(currentScreen.id);
+  const isMultiSelectScreen = multiSelectConfig.isMulti;
 
   useEffect(() => {
     if (!isLoading && currentScreen.type === 'LOADING') {
@@ -492,7 +465,8 @@ export default function ConversionTool() {
 
   const canConfirm =
     currentScreen.type === 'REPORT' ||
-    (currentScreen.type === 'QUESTION' && tempSelection !== null);
+    (currentScreen.type === 'QUESTION' && 
+     (isMultiSelectScreen ? multiSelections.length > 0 : tempSelection !== null));
 
   return (
     <div className="min-h-screen w-full bg-[#0a0f12] text-slate-100 flex flex-col font-sans iframe-safe">
@@ -529,8 +503,12 @@ export default function ConversionTool() {
         <aside className="col-span-3 flex flex-col">
           <SelectionButtons
             tempSelection={tempSelection}
+            multiSelections={multiSelections}
             onSelect={setTempSelection}
+            onToggleMulti={(selection) => toggleMultiSelection(selection, multiSelectConfig.maxSelections)}
             disabled={isLoading || currentScreen.type !== 'QUESTION'}
+            isMultiSelect={isMultiSelectScreen}
+            maxSelections={multiSelectConfig.maxSelections}
           />
           <ControlButtons
             onReset={handleReset}

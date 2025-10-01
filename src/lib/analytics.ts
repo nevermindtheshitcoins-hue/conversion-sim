@@ -16,18 +16,28 @@ export interface AnalyticsEvent {
 
 class Analytics {
   private isIframe: boolean;
+  private allowedOrigins: string[];
   constructor() {
     this.isIframe = window !== window.parent;
+    this.allowedOrigins = [
+      'https://localhost:3000',
+      'https://localhost:9002',
+      window.location.origin
+    ];
   }
   track(event: AnalyticsEvent) {
     console.log('Analytics Event:', event);
     if (this.isIframe) {
+      const targetOrigin = this.allowedOrigins.find(origin => 
+        document.referrer.startsWith(origin)
+      ) || this.allowedOrigins[0];
+      
       window.parent?.postMessage(
         {
           type: 'ANALYTICS_EVENT',
           event,
         },
-        '*'
+        targetOrigin
       );
     }
     this.trackLocally(event);

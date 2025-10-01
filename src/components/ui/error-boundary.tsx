@@ -29,14 +29,17 @@ class ErrorBoundary extends React.Component<Props, State> {
     return { hasError: true, error };
   }
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('Error caught by boundary:', error, errorInfo);
+    const sanitizedMessage = error.message?.replace(/[\r\n]/g, '') || 'Unknown error';
+    const sanitizedStack = error.stack?.replace(/[\r\n]/g, ' ') || '';
+    
+    console.error('Error caught by boundary:', sanitizedMessage, { componentStack: errorInfo.componentStack?.replace(/[\r\n]/g, ' ') });
     window.parent?.postMessage(
       {
         type: 'ERROR_OCCURRED',
-        error: error.message,
-        stack: error.stack,
+        error: sanitizedMessage,
+        stack: sanitizedStack,
       },
-      '*'
+      window.location.origin
     );
   }
   render() {

@@ -26,24 +26,25 @@ interface Screen {
 
 type FlowState = 'initial' | 'collecting' | 'generating' | 'complete' | 'error';
 
+const INITIAL_SCREENS: Screen[] = [
+  { id: 'INIT', content: 'Select Domain', type: 'QUESTION', options: DOMAINS.map(d => ({ label: d, value: d })) },
+  { id: 'PRELIM_A', content: 'Select Use Case', type: 'QUESTION', options: DOMAINS.map(d => ({ label: d, value: d })) },
+  { id: 'PRELIM_B', content: 'Select Pain Points', type: 'QUESTION', apiCall: true, options: DOMAINS.map(d => ({ label: d, value: d })) },
+  { id: 'LOADING_QUESTIONS', content: 'Generating Questions...', type: 'LOADING' },
+  { id: 'Q1', content: 'Question 1', type: 'QUESTION', options: [] },
+  { id: 'Q2', content: 'Question 2', type: 'QUESTION', options: [] },
+  { id: 'Q3', content: 'Question 3', type: 'QUESTION', options: [], multiSelect: true, maxSelections: 3 },
+  { id: 'Q4', content: 'Question 4', type: 'QUESTION', options: [] },
+  { id: 'Q5', content: 'Question 5', type: 'QUESTION', apiCall: true, options: [] },
+  { id: 'LOADING_REPORT', content: 'Generating Report...', type: 'LOADING' },
+  { id: 'REPORT', content: '', type: 'REPORT' },
+];
+
 const useScreenFlow = () => {
-  const [screens] = useState<Screen[]>([
-    { id: 'INIT', content: 'Select Domain', type: 'QUESTION', options: DOMAINS.map(d => ({ label: d, value: d })) },
-    { id: 'PRELIM_A', content: 'Select Use Case', type: 'QUESTION', options: DOMAINS.map(d => ({ label: d, value: d })) },
-    { id: 'PRELIM_B', content: 'Select Pain Points', type: 'QUESTION', apiCall: true, options: DOMAINS.map(d => ({ label: d, value: d })) },
-    { id: 'LOADING_QUESTIONS', content: 'Generating Questions...', type: 'LOADING' },
-    { id: 'Q1', content: 'Question 1', type: 'QUESTION', options: [] },
-    { id: 'Q2', content: 'Question 2', type: 'QUESTION', options: [] },
-    { id: 'Q3', content: 'Question 3', type: 'QUESTION', options: [], multiSelect: true, maxSelections: 3 },
-    { id: 'Q4', content: 'Question 4', type: 'QUESTION', options: [] },
-    { id: 'Q5', content: 'Question 5', type: 'QUESTION', apiCall: true, options: [] },
-    { id: 'LOADING_REPORT', content: 'Generating Report...', type: 'LOADING' },
-    { id: 'REPORT', content: '', type: 'REPORT' },
-  ]);
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [flowState, setFlowState] = useState<FlowState>('initial');
-  const [dynamicScreens, setDynamicScreens] = useState<Screen[]>(screens);
+  const [dynamicScreens, setDynamicScreens] = useState<Screen[]>(INITIAL_SCREENS);
 
   const currentScreen = dynamicScreens[currentIndex];
   const progress = Math.round((currentIndex / (dynamicScreens.length - 1)) * 100);
@@ -87,8 +88,8 @@ const useScreenFlow = () => {
   const reset = useCallback(() => {
     setCurrentIndex(0);
     setFlowState('initial');
-    setDynamicScreens(screens);
-  }, [screens]);
+    setDynamicScreens(INITIAL_SCREENS);
+  }, []);
 
   return {
     currentScreen,
@@ -315,7 +316,7 @@ const ControlButtons = ({
   </div>
 );
 
-export default function ConversionTool() {
+const useConversionLogic = () => {
   const screenFlow = useScreenFlow();
   const selectionState = useSelectionState();
   const [isLoading, setIsLoading] = useState(false);
@@ -364,13 +365,8 @@ export default function ConversionTool() {
       return;
     }
 
-    if (currentScreen.type === 'QUESTION' && tempSelection === null) {
-      return;
-    }
-
-    if (currentScreen.multiSelect && Array.isArray(tempSelection) && tempSelection.length === 0) {
-      return;
-    }
+    if (currentScreen.type === 'QUESTION' && tempSelection === null) return;
+    if (currentScreen.multiSelect && Array.isArray(tempSelection) && tempSelection.length === 0) return;
 
     if (tempSelection !== null) {
       recordSelection(currentIndex, tempSelection);
@@ -384,17 +380,16 @@ export default function ConversionTool() {
       screenFlow.goToNext();
 
       try {
-        const selectionValue = Array.isArray(tempSelection) ? tempSelection : tempSelection;
-        const result = await submitSelection(selectionValue, `Screen: ${currentScreen.id}`);
+        const result = await submitSelection(tempSelection, `Screen: ${currentScreen.id}`);
         
         if (result?.success) {
           if (currentScreen.id === 'PRELIM_B' && result.data.questions) {
             const questions = result.data.questions.map((q: any) => ({
               question: q.question || q.text || '',
-              options: q.options.map((opt: any) => ({
+              options: q.options?.map((opt: any) => ({
                 label: opt.label || opt.text || opt,
                 value: opt.value || opt
-              })),
+              })) || [],
               multiSelect: q.multiSelect || false,
               maxSelections: q.maxSelections || 1
             }));
@@ -444,20 +439,6 @@ export default function ConversionTool() {
     window.parent?.postMessage({ type: 'ASSESSMENT_RESET' }, '*');
   };
 
-  const renderContent = () => {
-    if (currentScreen.type === 'LOADING') {
-      return <LoadingDisplay message={currentScreen.content} />;
-    }
-    if (error) {
-      return <ErrorDisplay error={error} />;
-    }
-    if (currentScreen.type === 'REPORT') {
-      return <ReportDisplay content={currentScreen.content} />;
-    }
-    const selectedCount = Array.isArray(tempSelection) ? tempSelection.length : (tempSelection ? 1 : 0);
-    return <QuestionDisplay content={currentScreen.content} multiSelect={currentScreen.multiSelect} maxSelections={currentScreen.maxSelections} selectedCount={selectedCount} />;
-  };
-
   const isValidSelection = () => {
     if (currentScreen.type === 'REPORT') return true;
     if (currentScreen.type !== 'QUESTION') return false;
@@ -468,7 +449,50 @@ export default function ConversionTool() {
     return tempSelection !== null;
   };
 
-  const canConfirm = isValidSelection();
+  return {
+    currentScreen,
+    currentIndex,
+    progress,
+    tempSelection,
+    isLoading,
+    error,
+    canConfirm: isValidSelection(),
+    handleSelection,
+    handleConfirm,
+    handleBack,
+    handleReset,
+  };
+};
+
+const ContentRenderer = ({ currentScreen, tempSelection, error }: { currentScreen: Screen; tempSelection: number | number[] | null; error: string | null }) => {
+  if (currentScreen.type === 'LOADING') {
+    return <LoadingDisplay message={currentScreen.content} />;
+  }
+  if (error) {
+    return <ErrorDisplay error={error} />;
+  }
+  if (currentScreen.type === 'REPORT') {
+    return <ReportDisplay content={currentScreen.content} />;
+  }
+  const selectedCount = Array.isArray(tempSelection) ? tempSelection.length : (tempSelection ? 1 : 0);
+  return <QuestionDisplay content={currentScreen.content} multiSelect={currentScreen.multiSelect} maxSelections={currentScreen.maxSelections} selectedCount={selectedCount} />;
+};
+
+export default function ConversionTool() {
+  const {
+    currentScreen,
+    currentIndex,
+    progress,
+    tempSelection,
+    isLoading,
+    error,
+    canConfirm,
+    handleSelection,
+    handleConfirm,
+    handleBack,
+    handleReset,
+  } = useConversionLogic();
+
   const currentOptions = currentScreen.options || [];
 
   return (

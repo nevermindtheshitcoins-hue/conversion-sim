@@ -15,18 +15,18 @@
 import { z } from 'genkit';
 
 // Input and output schemas for our AI flow
-const DiagnosePlantInputSchema = z.object({
+const DiagnoseConversionInputSchema = z.object({
   buttonNumber: z.number().describe('The number of the button that was pressed.'),
   question: z.string().describe('The context of the screen where the button was pressed.'),
 });
 
-const DiagnosePlantOutputSchema = z.object({
+const DiagnoseConversionOutputSchema = z.object({
   response: z.string().describe('The generated response from the AI.'),
   questions: z.array(z.string()).optional().describe('A list of 5 questions, generated only for the PRELIM_B screen.'),
 });
 
-export type DiagnosePlantInput = z.infer<typeof DiagnosePlantInputSchema>;
-export type DiagnosePlantOutput = z.infer<typeof DiagnosePlantOutputSchema>;
+export type DiagnoseConversionInput = z.infer<typeof DiagnoseConversionInputSchema>;
+export type DiagnoseConversionOutput = z.infer<typeof DiagnoseConversionOutputSchema>;
 
 // AI provider types and configuration
 type AIProvider = 'openai' | 'gemini';
@@ -41,8 +41,8 @@ interface AIServiceConfig {
 const AI_CONFIG: AIServiceConfig = {
   primaryProvider: 'openai',
   fallbackProvider: 'gemini',
-  maxRetries: 2,
-  retryDelay: 1000,
+  maxRetries: 1,
+  retryDelay: 500,
 };
 
 // OpenAI service wrapper.  This class constructs prompts based on
@@ -56,7 +56,7 @@ class OpenAIService {
     this.baseUrl = 'https://api.openai.com/v1';
   }
 
-  async generateResponse(input: DiagnosePlantInput): Promise<DiagnosePlantOutput> {
+  async generateResponse(input: DiagnoseConversionInput): Promise<DiagnoseConversionOutput> {
     const prompt = this.buildPrompt(input);
     const response = await fetch(`${this.baseUrl}/chat/completions`, {
       method: 'POST',
@@ -94,7 +94,7 @@ class OpenAIService {
     }
   }
 
-  private buildPrompt(input: DiagnosePlantInput): string {
+  private buildPrompt(input: DiagnoseConversionInput): string {
     if (input.question === 'Screen: PRELIM_B') {
       return `You're helping a business visitor who selected option ${input.buttonNumber} for pain points. Generate a professional response with 5 targeted questions that will help assess their specific needs.\n\nReturn JSON with:\n- "response": A brief encouraging message about moving forward with their assessment\n- "questions": An array of 5 specific, actionable questions related to their pain points\n\nFocus on conversion optimization, lead qualification, and providing value.`;
     }
@@ -114,19 +114,19 @@ class GeminiService {
     const { ai } = require('@/ai/genkit');
     this.ai = ai;
   }
-  async generateResponse(input: DiagnosePlantInput): Promise<DiagnosePlantOutput> {
+  async generateResponse(input: DiagnoseConversionInput): Promise<DiagnoseConversionOutput> {
     const prompt = this.buildGeminiPrompt(input);
-    const outputSchema = input.question === 'Screen: PRELIM_B' ? DiagnosePlantOutputSchema : DiagnosePlantOutputSchema.partial();
+    const outputSchema = input.question === 'Screen: PRELIM_B' ? DiagnoseConversionOutputSchema : DiagnoseConversionOutputSchema.partial();
     const promptFunction = this.ai.definePrompt({
       name: 'conversionPrompt',
-      input: { schema: DiagnosePlantInputSchema },
+      input: { schema: DiagnoseConversionInputSchema },
       output: { schema: outputSchema },
       prompt: prompt,
     });
     const { output } = await promptFunction(input);
     return output!;
   }
-  private buildGeminiPrompt(input: DiagnosePlantInput): string {
+  private buildGeminiPrompt(input: DiagnoseConversionInput): string {
     if (input.question === 'Screen: PRELIM_B') {
       return `Professional assessment: visitor selected button {{buttonNumber}} for pain points. Generate JSON with brief encouraging response and 5 targeted questions for lead qualification.`;
     }
@@ -149,31 +149,34 @@ class AIService {
     this.gemini = new GeminiService();
     this.config = AI_CONFIG;
   }
-  async generateResponse(input: DiagnosePlantInput): Promise<DiagnosePlantOutput> {
-    const startTime = Date.now();
-    try {
-      if (this.config.primaryProvider === 'openai') {
-        const result = await this.openAI.generateResponse(input);
-        return result;
-      } else {
-        const result = await this.gemini.generateResponse(input);
-        return result;
-      }
-    } catch (primaryError) {
+  async generateResponse(input: DiagnoseConversionInput): Promise<DiagnoseConversionOutput> {
+    for (let attempt = 0; attempt < this.config.maxRetries; attempt++) {
       try {
-        if (this.config.fallbackProvider === 'gemini') {
-          const result = await this.gemini.generateResponse(input);
-          return result;
+        if (this.config.primaryProvider === 'openai') {
+          return await this.openAI.generateResponse(input);
         } else {
-          const result = await this.openAI.generateResponse(input);
-          return result;
+          return await this.gemini.generateResponse(input);
         }
-      } catch (fallbackError) {
-        return this.generateFallbackResponse(input);
+      } catch (primaryError) {
+        if (attempt < this.config.maxRetries - 1) {
+          await new Promise(resolve => setTimeout(resolve, this.config.retryDelay));
+          continue;
+        }
+        
+        try {
+          if (this.config.fallbackProvider === 'gemini') {
+            return await this.gemini.generateResponse(input);
+          } else {
+            return await this.openAI.generateResponse(input);
+          }
+        } catch (fallbackError) {
+          return this.generateFallbackResponse(input);
+        }
       }
     }
+    return this.generateFallbackResponse(input);
   }
-  private generateFallbackResponse(input: DiagnosePlantInput): DiagnosePlantOutput {
+  private generateFallbackResponse(input: DiagnoseConversionInput): DiagnoseConversionOutput {
     if (input.question === 'Screen: PRELIM_B') {
       return {
         response: "Thank you for your selection! Let's dive deeper into your specific needs with a few targeted questions.",
@@ -202,7 +205,7 @@ const aiService = new AIService();
 
 // Exported function used by the rest of the app.  It validates
 // input and output and throws descriptive errors when invalid.
-export async function diagnosePlant(input: DiagnosePlantInput): Promise<DiagnosePlantOutput> {
+export async function diagnoseConversion(input: DiagnoseConversionInput): Promise<DiagnoseConversionOutput> {
   if (!input.buttonNumber || input.buttonNumber < 1 || input.buttonNumber > 5) {
     throw new Error('Invalid button number. Must be between 1 and 5.');
   }
@@ -224,7 +227,7 @@ export async function diagnosePlant(input: DiagnosePlantInput): Promise<Diagnose
     }
     return result;
   } catch (error) {
-    console.error('Error in diagnosePlant:', error);
+    console.error('Error in diagnoseConversion:', error);
     throw error;
   }
 }
