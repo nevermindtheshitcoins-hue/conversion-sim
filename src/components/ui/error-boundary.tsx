@@ -29,17 +29,24 @@ class ErrorBoundary extends React.Component<Props, State> {
     return { hasError: true, error };
   }
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    const sanitizedMessage = error.message?.replace(/[\r\n]/g, '') || 'Unknown error';
-    const sanitizedStack = error.stack?.replace(/[\r\n]/g, ' ') || '';
+    const sanitizedMessage = error.message?.replace(/[\r\n\t]/g, '').substring(0, 200) || 'Unknown error';
+    const sanitizedStack = error.stack?.replace(/[\r\n\t]/g, ' ').substring(0, 500) || '';
+    const sanitizedComponentStack = errorInfo.componentStack?.replace(/[\r\n\t]/g, ' ').substring(0, 300) || '';
     
-    console.error('Error caught by boundary:', sanitizedMessage, { componentStack: errorInfo.componentStack?.replace(/[\r\n]/g, ' ') });
+    console.error('Error caught by boundary:', sanitizedMessage, { componentStack: sanitizedComponentStack });
+    // Only send error messages to trusted origins
+    const allowedOrigins = [window.location.origin, 'https://yourdomain.com'];
+    const targetOrigin = allowedOrigins.includes(window.parent?.location?.origin || '') 
+      ? window.parent.location.origin 
+      : window.location.origin;
+      
     window.parent?.postMessage(
       {
         type: 'ERROR_OCCURRED',
         error: sanitizedMessage,
-        stack: sanitizedStack,
+        stack: sanitizedStack.substring(0, 200),
       },
-      window.location.origin
+      targetOrigin
     );
   }
   render() {

@@ -1,7 +1,7 @@
 'use client';
 
-import { Button } from '../ui/button';
-import type { ScreenConfig } from '../../lib/screen-config';
+
+import type { ScreenConfig } from '../../lib/screen-config-new';
 
 interface QuestionScreenProps {
   config: ScreenConfig;
@@ -46,13 +46,12 @@ export function QuestionScreen({ config, onSelection, selectedOptions = [] }: Qu
           const disabled = config.multiSelect && !selected && !canSelect;
           
           return (
-            <Button
+            <button
               key={index}
               onClick={() => handleSelection(index, option)}
               disabled={disabled}
-              variant={selected ? "default" : "outline"}
-              className={`w-full p-4 text-left justify-start h-auto whitespace-normal ${
-                selected ? 'bg-blue-600 text-white' : ''
+              className={`w-full p-4 text-left h-auto whitespace-normal border rounded-lg transition-colors ${
+                selected ? 'bg-blue-600 text-white border-blue-600' : 'bg-white border-gray-300 hover:border-gray-400'
               } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
               <span className="text-sm font-medium mr-3">
@@ -62,19 +61,19 @@ export function QuestionScreen({ config, onSelection, selectedOptions = [] }: Qu
               {selected && config.multiSelect && (
                 <span className="ml-auto">✓</span>
               )}
-            </Button>
+            </button>
           );
         })}
       </div>
 
       {config.multiSelect && selectedOptions.length > 0 && (
         <div className="mt-6 text-center">
-          <Button
+          <button
             onClick={() => onSelection(0, 'continue')}
-            className="px-8 py-2"
+            className="px-8 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
           >
             Continue with {selectedOptions.length} selection{selectedOptions.length > 1 ? 's' : ''}
-          </Button>
+          </button>
         </div>
       )}
     </div>

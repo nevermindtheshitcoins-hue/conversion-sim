@@ -5,6 +5,7 @@ export interface ScreenConfig {
   context: string;
   multiSelect?: boolean;
   maxSelections?: number;
+  aiGenerated?: boolean;
 }
 
 export const SCREEN_CONFIGS: Record<string, ScreenConfig> = {
@@ -68,7 +69,8 @@ export const SCREEN_CONFIGS: Record<string, ScreenConfig> = {
     ],
     context: "Barrier identification and constraint analysis",
     multiSelect: true,
-    maxSelections: 3
+    maxSelections: 3,
+    aiGenerated: true
   },
   Q4: {
     title: "How do you typically make decisions about new initiatives?",

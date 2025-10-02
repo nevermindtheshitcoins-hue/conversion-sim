@@ -25,8 +25,8 @@ const DiagnoseConversionOutputSchema = z.object({
   questions: z.array(z.string()).optional().describe('A list of 5 questions, generated only for the PRELIM_B screen.'),
 });
 
-export type DiagnoseConversionInput = z.infer<typeof DiagnoseConversionInputSchema>;
-export type DiagnoseConversionOutput = z.infer<typeof DiagnoseConversionOutputSchema>;
+export type ConversionDiagnosisInput = z.infer<typeof DiagnoseConversionInputSchema>;
+export type ConversionDiagnosisOutput = z.infer<typeof DiagnoseConversionOutputSchema>;
 
 // AI provider types and configuration
 type AIProvider = 'openai' | 'gemini';
@@ -48,12 +48,11 @@ const AI_CONFIG: AIServiceConfig = {
 // OpenAI service wrapper.  This class constructs prompts based on
 // our current context and calls the OpenAI chat API.
 class OpenAIService {
-  private apiKey: string;
-  private baseUrl: string;
+  private readonly apiKey: string;
+  private readonly baseUrl: string = 'https://api.openai.com/v1';
 
   constructor() {
     this.apiKey = process.env.OPENAI_API_KEY || '';
-    this.baseUrl = 'https://api.openai.com/v1';
   }
 
 public async generateResponse(input: DiagnoseConversionInput): Promise<DiagnoseConversionOutput> {

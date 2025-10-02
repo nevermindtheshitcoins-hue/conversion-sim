@@ -41,16 +41,25 @@ class AnonymousAnalytics {
   private async sendToAnalytics(pattern: AnalyticsPattern) {
     try {
       // Send to your analytics endpoint
-      await fetch('/api/analytics', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          type: 'journey_pattern',
-          data: pattern,
-        }),
-      });
+      const allowedOrigins = [window.location.origin, 'https://yourdomain.com'];
+      const currentOrigin = window.location.origin;
+      
+      if (allowedOrigins.includes(currentOrigin)) {
+        await fetch('/api/analytics', {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            'Origin': currentOrigin
+          },
+          body: JSON.stringify({
+            type: 'journey_pattern',
+            data: pattern,
+          }),
+        });
+      }
     } catch (error) {
-      console.warn('Analytics send failed:', error);
+      const sanitizedError = error instanceof Error ? error.message.replace(/[\r\n\t]/g, '').substring(0, 100) : 'Unknown error';
+      console.warn('Analytics send failed:', sanitizedError);
     }
   }
 

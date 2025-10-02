@@ -1,24 +1,27 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { JourneyTracker } from '../lib/journey-tracker';
 import { getScreenConfig } from '../lib/screen-config';
+import type { ScreenConfig } from '../lib/screen-config';
 import { QuestionScreen } from './screens/QuestionScreen';
-import { diagnoseConversionEnhanced } from '../ai/flows/enhanced-conversion-flow';
+import { submitSelectionEnhanced } from '../app/actions-enhanced';
 import type { EnhancedAIInput } from '../ai/flows/enhanced-conversion-flow';
 
 const SCREEN_ORDER = ['PRELIM_A', 'PRELIM_B', 'Q1', 'Q2', 'Q3', 'Q4', 'Q5'];
 
 export function AssessmentFlow() {
   const [currentScreenIndex, setCurrentScreenIndex] = useState(0);
-  const [journeyTracker] = useState(() => new JourneyTracker());
+  const [journeyTracker, setJourneyTracker] = useState(() => new JourneyTracker());
   const [selectedOptions, setSelectedOptions] = useState<number[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [aiResponse, setAiResponse] = useState<string>('');
   const [dynamicQuestions, setDynamicQuestions] = useState<string[]>([]);
+  const [dynamicScreenConfigs, setDynamicScreenConfigs] = useState<Record<string, ScreenConfig>>({});
 
   const currentScreen = SCREEN_ORDER[currentScreenIndex];
-  const config = getScreenConfig(currentScreen);
+  const baseConfig = getScreenConfig(currentScreen);
+  const config = dynamicScreenConfigs[currentScreen] || baseConfig;
 
   const handleSelection = useCallback(async (buttonNumber: number, buttonText: string, isMultiSelect?: boolean) => {
     if (isMultiSelect && buttonNumber > 0) {
@@ -66,11 +69,41 @@ export function AssessmentFlow() {
         screenConfig: config,
       };
 
-      const result = await diagnoseConversionEnhanced(aiInput);
-      setAiResponse(result.response);
+      const result = await submitSelectionEnhanced(aiInput);
       
-      if (result.questions) {
-        setDynamicQuestions(result.questions);
+      if (result.success && result.data) {
+        setAiResponse(result.data.response);
+        if (result.data.questions) {
+          setDynamicQuestions(result.data.questions);
+          
+          // If this screen generates questions for the next screen, update it
+          if (currentScreen === 'PRELIM_B') {
+            const nextScreenIndex = currentScreenIndex + 2; // Skip loading screen
+            const nextScreen = SCREEN_ORDER[nextScreenIndex];
+            if (nextScreen) {
+              setDynamicScreenConfigs(prev => ({
+                ...prev,
+                [nextScreen]: {
+                  ...getScreenConfig(nextScreen),
+                  options: result.data.questions || [],
+                },
+              }));
+            }
+          }
+          
+          // If Q3 generates its own questions, update current screen
+          if (currentScreen === 'Q3' && 'aiGenerated' in baseConfig && baseConfig.aiGenerated) {
+            setDynamicScreenConfigs(prev => ({
+              ...prev,
+              [currentScreen]: {
+                ...baseConfig,
+                options: result.data.questions || [],
+              },
+            }));
+          }
+        }
+      } else {
+        throw new Error(result.error || 'Unknown error');
       }
 
       // Move to next screen or show results
@@ -93,7 +126,7 @@ export function AssessmentFlow() {
         setIsLoading(false);
       }, 1000);
     }
-  }, [currentScreen, config, currentScreenIndex, journeyTracker, selectedOptions]);
+  }, [baseConfig, config, currentScreen, currentScreenIndex, journeyTracker, selectedOptions]);
 
   const resetAssessment = () => {
     setCurrentScreenIndex(0);
@@ -101,12 +134,13 @@ export function AssessmentFlow() {
     setSelectedOptions([]);
     setAiResponse('');
     setDynamicQuestions([]);
+    setDynamicScreenConfigs({});
   };
 
   if (isLoading) {
     return (
       <div className="max-w-2xl mx-auto p-6 text-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+        <div className="animate-spin rounded-full size-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
         <p className="text-gray-600">Processing your response...</p>
         {aiResponse && (
           <div className="mt-6 p-4 bg-blue-50 rounded-lg">
