@@ -23,6 +23,16 @@ const INDUSTRIES = [
 
 const SCREEN_ORDER = ['PRELIM_1', 'PRELIM_2', 'PRELIM_3', 'Q4', 'Q5', 'Q6', 'Q7', 'REPORT'];
 
+const AI_SCALE_OPTIONS = [
+  'Yes, this is a major challenge',
+  'Somewhat challenging',
+  'Minor issue',
+  'Not applicable to us',
+  'We have this handled',
+  'Need more information',
+  'Prefer not to answer',
+];
+
 export default function ConversionTool() {
   const [currentScreenIndex, setCurrentScreenIndex] = useState(0);
   const [journeyTracker] = useState(() => new JourneyTracker());
@@ -31,7 +41,7 @@ export default function ConversionTool() {
   const [textInput, setTextInput] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
   const [industry, setIndustry] = useState<string>('');
-  const [aiQuestions, setAiQuestions] = useState<string[]>([]);
+  const [aiQuestions, setAiQuestions] = useState<Array<{ text: string; options: string[] }>>([]);
   
   const [reportData, setReportData] = useState<ReportData | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -39,13 +49,60 @@ export default function ConversionTool() {
   const currentScreen = SCREEN_ORDER[currentScreenIndex];
   const progress = Math.round(((currentScreenIndex + 1) / SCREEN_ORDER.length) * 100);
 
+  function getInteractionMode(screen: string | undefined, industry: string) {
+    try {
+      if (!screen) return { isTextInput: false, isMultiSelect: false };
+      const config = getScreenConfig(screen, industry);
+      const isTextInput = !!config.textInput;
+      const multiSelectKeywords = ['challenges', 'priorities', 'factors', 'areas', 'issues'];
+      const hasMultiKeyword = multiSelectKeywords.some(k => config.title.toLowerCase().includes(k));
+      const isMultiSelect = !!config.multiSelect || (!isTextInput && hasMultiKeyword && (config.options?.length ?? 0) > 3);
+      return { isTextInput, isMultiSelect };
+    } catch {
+      return { isTextInput: false, isMultiSelect: false };
+    }
+  }
+
+  const { isTextInput, isMultiSelect } = React.useMemo(
+    () => getInteractionMode(currentScreen, industry),
+    [currentScreen, industry]
+  );
+
+  const options = React.useMemo(() => {
+    if (!currentScreen) return ['Loading...'];
+
+    // Industry picker
+    if (currentScreen === 'PRELIM_1') return INDUSTRIES.slice(0, 7);
+
+    // AI questions Q4+
+    if (currentScreen.startsWith('Q')) {
+      const qNum = parseInt(currentScreen.substring(1), 10) - 4; // Q4 = index 0
+      const q = aiQuestions[qNum];
+      if (q) {
+        const opts = Array.isArray(q.options) && q.options.length > 0 ? q.options : AI_SCALE_OPTIONS;
+        return opts.slice(0, 7);
+      }
+      // If AI failed to populate, prefer explicit message-less options to avoid nonsense
+      return AI_SCALE_OPTIONS.slice(0, 7);
+    }
+
+    // Config-driven screens
+    try {
+      const config = getScreenConfig(currentScreen, industry);
+      return (config.options || []).slice(0, 7);
+    } catch {
+      return AI_SCALE_OPTIONS.slice(0, 7);
+    }
+  }, [currentScreen, industry, aiQuestions]);
+
   const getScreenContent = () => {
     if (!currentScreen) return 'LOADING...';
     if (currentScreen === 'PRELIM_1') return 'SELECT INDUSTRY';
     if (currentScreen === 'REPORT') return 'YOUR ASSESSMENT';
-    if (currentScreen.startsWith('Q') && aiQuestions.length > 0) {
+    if (currentScreen.startsWith('Q')) {
       const questionIndex = parseInt(currentScreen.substring(1), 10) - 4;
-      return aiQuestions[questionIndex] || 'AI GENERATED QUESTION';
+      const q = aiQuestions[questionIndex];
+      return q?.text || 'Preparing tailored question…';
     }
     try {
       const config = getScreenConfig(currentScreen, industry);
@@ -55,72 +112,22 @@ export default function ConversionTool() {
     }
   };
 
-  const getOptions = () => {
-    if (!currentScreen) return ['Loading...'];
-    
-    if (currentScreen === 'PRELIM_1') {
-      return INDUSTRIES;
-    }
-    
-    if (currentScreen.startsWith('Q') && aiQuestions.length > 0) {
-      const questionIndex = parseInt(currentScreen.substring(1), 10) - 4;
-      if (questionIndex >= 0 && questionIndex < aiQuestions.length) {
-        // Return actual multiple choice options instead of agreement scale
-        return [
-          'Yes, this is a major challenge',
-          'Somewhat challenging',
-          'Minor issue',
-          'Not applicable to us',
-          'We have this handled',
-          'Need more information',
-          'Prefer not to answer'
-        ];
-      }
-    }
-    
-    try {
-      const config = getScreenConfig(currentScreen, industry);
-      const options = config.options.slice(0, 7);
-      while (options.length < 7) {
-        options.push(`Option ${options.length + 1}`);
-      }
-      return options;
-    } catch {
-      return [
-        'Option 1',
-        'Option 2', 
-        'Option 3',
-        'Option 4',
-        'Option 5',
-        'Option 6',
-        'Option 7',
-      ];
-    }
-  };
 
-  const getMultiSelectConfig = () => {
-    try {
-      const config = getScreenConfig(currentScreen, industry);
-      const multiSelectKeywords = ['challenges', 'priorities', 'factors', 'areas', 'issues'];
-      const hasMultiKeyword = multiSelectKeywords.some(keyword => 
-        config.title.toLowerCase().includes(keyword)
-      );
-      return {
-        isMultiSelect: Boolean(config.multiSelect) || (hasMultiKeyword && config.options.length > 3),
-        maxSelections: config.maxSelections || 3,
-        isTextInput: Boolean(config.textInput)
-      };
-    } catch {
-      return { isMultiSelect: false, maxSelections: 3, isTextInput: false };
-    }
-  };
 
   const processAIGeneration = async (screen: string, context: UserJourney, industry: string) => {
     try {
       if (screen === 'PRELIM_3') {
         const result = await generateQuestionsFromPrelims(context, industry);
         if (result?.questions && Array.isArray(result.questions)) {
-          setAiQuestions(result.questions);
+          const normalized = result.questions.map((q: any) => {
+            if (typeof q === 'string') {
+              return { text: q, options: AI_SCALE_OPTIONS.slice(0, 7) };
+            }
+            const text = typeof q?.text === 'string' && q.text.trim() ? q.text : 'Question';
+            const options = Array.isArray(q?.options) && q.options.length > 0 ? q.options : AI_SCALE_OPTIONS;
+            return { text, options: options.slice(0, 7) };
+          });
+          setAiQuestions(normalized);
         } else {
           throw new Error('Invalid questions format received');
         }
@@ -129,7 +136,16 @@ export default function ConversionTool() {
       if (screen === 'Q7') {
         const result = await generateCustomReport(context, industry);
         if (result?.response) {
-          setReportData(result);
+          const enriched: ReportData = {
+            ...result,
+            response: `DEPLOYMENT ANALYSIS:\n\n${result.response}`,
+            reportFactors: (result.reportFactors ?? []).slice(0, 4).map((f: any) => ({
+              factor: f?.factor || 'Unspecified Factor',
+              analysis: f?.analysis || 'No analysis provided',
+              recommendation: f?.recommendation || 'Consider revisiting this area',
+            })),
+          } as ReportData;
+          setReportData(enriched);
         } else {
           throw new Error('Invalid report format received');
         }
@@ -140,62 +156,46 @@ export default function ConversionTool() {
     }
   };
 
-  const processUserInput = () => {
-    const { isMultiSelect, maxSelections, isTextInput } = getMultiSelectConfig();
-    
+
+
+  const handleConfirm = async () => {
+    if (!currentScreen) return;
+
     if (isTextInput) {
-      const validation = validateTextInput(textInput);
-      if (!validation.isValid) {
-        setError(validation.error!);
-        return false;
+      if (textInput.trim().length < 5 || textInput.trim().length > 100) {
+        setError('Please enter 5-100 characters describing your scenario');
+        return;
       }
       journeyTracker.addResponse(currentScreen, 1, textInput.trim());
       setTextInput('');
     } else {
-      const validation = validateSelection(tempSelection, multiSelections, isMultiSelect, maxSelections);
-      if (!validation.isValid) {
-        setError(validation.error!);
-        return false;
+      const hasSelection = isMultiSelect ? multiSelections.length > 0 : tempSelection !== null;
+      if (!hasSelection) {
+        setError(isMultiSelect ? 'Please select at least one option' : 'Please select an option');
+        return;
       }
-      
-      const options = getOptions();
       if (isMultiSelect) {
         const selectedTexts = multiSelections.map(sel => options[sel - 1]).join(', ');
         journeyTracker.addResponse(currentScreen, multiSelections[0], selectedTexts);
         setMultiSelections([]);
-      } else {
-        const buttonText = options[tempSelection! - 1];
-        if (currentScreen === 'PRELIM_1') {
-          setIndustry(buttonText);
-        }
-        journeyTracker.addResponse(currentScreen, tempSelection!, buttonText);
+      } else if (tempSelection !== null) {
+        const buttonText = options[tempSelection - 1];
+        if (currentScreen === 'PRELIM_1') setIndustry(buttonText);
+        journeyTracker.addResponse(currentScreen, tempSelection, buttonText);
       }
     }
-    return true;
-  };
 
-  const handleConfirm = async () => {
-    if (!currentScreen) {
-      setError('Invalid screen state');
-      return;
-    }
-    
-    if (!processUserInput()) return;
-    
     setTempSelection(null);
     setError(null);
     setIsLoading(true);
 
     try {
       await processAIGeneration(currentScreen, journeyTracker.getFullContext(currentScreen), industry);
-      setTimeout(() => {
-        setCurrentScreenIndex(prev => prev + 1);
-        setIsLoading(false);
-      }, 1500);
+      setTimeout(() => { setCurrentScreenIndex(p => p + 1); setIsLoading(false); }, 1500);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Processing error occurred';
-      setError(errorMessage);
-      setIsLoading(false);
+      console.error('Processing error:', err);
+      setError('Processing error occurred');
+      setTimeout(() => { setCurrentScreenIndex(p => p + 1); setIsLoading(false); }, 1000);
     }
   };
 
@@ -223,48 +223,42 @@ export default function ConversionTool() {
 
   const handleSelect = (value: number, isMulti: boolean) => {
     if (isMulti) {
-      setMultiSelections(prev => 
-        prev.includes(value) ? prev.filter(v => v !== value) : [...prev, value]
-      );
+      setMultiSelections(prev => {
+        return prev.includes(value) ? prev.filter(x => x !== value) : [...prev, value];
+      });
+      setTempSelection(null);
     } else {
       setTempSelection(value);
+      setMultiSelections([]);
     }
+    setError(null);
   };
 
-  const handleCopyReport = () => {
-    if (reportData && reportData.response) {
-      const reportText = `BUSINESS DEPLOYMENT REPORT\n\n${reportData.response}\n\n${reportData.reportFactors?.map(f => `${f.factor}: ${f.analysis} → ${f.recommendation}`).join('\n\n') || ''}`;
+  const handleCopyReport = React.useCallback(() => {
+    if (reportData?.response) {
+      const factorsText = reportData.reportFactors?.map(f => `${f.factor}: ${f.analysis} → ${f.recommendation}`).join('\n\n') || '';
+      const reportText = `BUSINESS DEPLOYMENT REPORT\n\n${reportData.response}\n\n${factorsText}`;
       copyToClipboard(reportText);
     }
-  };
+  }, [reportData]);
 
-  const getCanConfirm = () => {
-    if (currentScreenIndex >= SCREEN_ORDER.length) return true;
-    if (!currentScreen) return false;
-    
-    const { isMultiSelect, isTextInput } = getMultiSelectConfig();
-    
-    if (isTextInput) {
-      return validateTextInput(textInput).isValid;
-    }
-    
-    return validateSelection(tempSelection, multiSelections, isMultiSelect).isValid;
-  };
-  
-  const canConfirm = getCanConfirm();
+  const canConfirm = React.useMemo(() => {
+    if (currentScreenIndex >= SCREEN_ORDER.length || !currentScreen) return true;
+    if (isTextInput) return textInput.trim().length >= 5 && textInput.trim().length <= 100;
+    if (isMultiSelect) return multiSelections.length > 0;
+    return tempSelection !== null;
+  }, [currentScreenIndex, currentScreen, isTextInput, textInput, isMultiSelect, multiSelections, tempSelection]);
 
-  const getIsTextInput = () => {
-    return getMultiSelectConfig().isTextInput;
-  };
 
-  const getShowTextPreview = () => {
+
+  const showTextPreview = React.useMemo(() => {
     try {
       const config = getScreenConfig(currentScreen, industry);
       return Boolean(config.textInput) && textInput.length > 0;
     } catch {
       return false;
     }
-  };
+  }, [currentScreen, industry, textInput.length]);
 
   // Validate iframe origin on mount
   useEffect(() => {
@@ -301,14 +295,15 @@ export default function ConversionTool() {
           industry={industry}
           isLoading={isLoading}
           reportData={currentScreenIndex >= SCREEN_ORDER.length ? reportData : null}
-          showTextPreview={getShowTextPreview()}
+          showTextPreview={showTextPreview}
           textPreview={textInput}
         />
         <Buttons
-          isTextInput={getIsTextInput()}
+          isTextInput={isTextInput}
+          isMultiSelect={isMultiSelect}
           textValue={textInput}
           onTextChange={setTextInput}
-          options={getOptions()}
+          options={options}
           tempSelection={tempSelection}
           multiSelections={multiSelections}
           onSelect={handleSelect}

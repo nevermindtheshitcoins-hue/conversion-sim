@@ -1,7 +1,11 @@
 import { RefreshCcw } from 'lucide-react';
 
+/** Props for the Buttons sidebar component */
 interface ButtonsProps {
+  /** Whether the current screen requires text input */
   isTextInput: boolean;
+  /** Whether the current screen allows multiple selections */
+  isMultiSelect: boolean;
   textValue: string;
   onTextChange: (value: string) => void;
   options: string[];
@@ -20,6 +24,7 @@ interface ButtonsProps {
 
 export function Buttons({
   isTextInput,
+  isMultiSelect,
   textValue,
   onTextChange,
   options,
@@ -44,72 +49,28 @@ export function Buttons({
               value={textValue}
               onChange={(e) => onTextChange(e.target.value)}
               placeholder="Describe your scenario where DeVOTE technology could be used..."
-              aria-label="Text input for your response"
-              aria-describedby="char-count"
               className="w-full h-64 p-4 bg-slate-800/60 border border-white/10 rounded-2xl text-yellow-300 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-400/70 focus:border-emerald-400/30 resize-none"
               maxLength={100}
             />
-            <div id="char-count" className="text-xs text-slate-400 text-center" aria-live="polite">
-              {textValue.length}/100 characters (minimum 5)
-            </div>
+            <div className="text-xs text-slate-400 text-center">{textValue.length}/100 characters (minimum 5)</div>
           </div>
         ) : (
           <>
-            {Array.from({ length: 7 }).map((_, index) => {
-              const option = options[index] || '';
-              const isBlank = !option;
-              const buttonValue = index + 1;
-
-              if (isBlank) {
-                return (
-                  <button
-                    key={index}
-                    disabled
-                    className="w-full rounded-2xl py-4 px-2 bg-slate-700/30 border border-white/5 cursor-not-allowed"
-                  />
-                );
+            {Array.from({ length: 7 }).map((_, i) => {
+              const label = options[i] || '';
+              if (!label) {
+                return <button key={i} disabled className="w-full rounded-2xl py-4 px-2 bg-slate-700/30 border border-white/5 cursor-not-allowed" />;
               }
-
-              const isMultiSelect = multiSelections.length > 0 || options.length > 5;
-              const isSelected = isMultiSelect 
-                ? multiSelections.includes(buttonValue)
-                : tempSelection === buttonValue;
+              const value = i + 1;
+              const active = isMultiSelect ? multiSelections.includes(value) : tempSelection === value;
 
               return (
                 <button
-                  key={index}
-                  onClick={() => onSelect(buttonValue, isMultiSelect)}
-                  aria-pressed={isSelected}
-                  aria-label={`Option ${buttonValue}: ${option}`}
-                  role={isMultiSelect ? 'checkbox' : 'radio'}
-                  tabIndex={0}
-                  className={`
-                    w-full rounded-2xl py-4 px-2 grid place-items-center border transition shadow-lg relative
-                    focus:outline-none focus:ring-2 focus:ring-cyan-400/60
-                    active:translate-y-px
-                    ${
-                      isSelected
-                        ? 'bg-slate-800/90 border-emerald-400/30 ring-2 ring-emerald-400/70 shadow-inner'
-                        : 'bg-slate-800/60 border-white/10 hover:bg-slate-800/80 hover:border-white/20'
-                    }
-                  `}
+                  key={i}
+                  onClick={() => onSelect(value, isMultiSelect)}
+                  className={`w-full rounded-2xl py-4 px-3 border transition ${active ? "border-emerald-400 bg-emerald-900/30" : "border-white/10 bg-slate-800/60"}`}
                 >
-                  {isMultiSelect && isSelected && (
-                    <div className="absolute top-2 right-2 w-3 h-3 bg-emerald-400 rounded-full" />
-                  )}
-                  <span
-                    className={`uppercase text-xs tracking-widest text-center leading-tight ${
-                      isSelected ? 'text-emerald-300' : 'text-yellow-300'
-                    }`}
-                    style={{
-                      textShadow:
-                        isSelected
-                          ? '0 0 10px rgba(16,185,129,0.9), 0 0 18px rgba(16,185,129,0.5)'
-                          : '0 0 8px rgba(253,224,71,0.8), 0 0 14px rgba(253,224,71,0.4)',
-                    }}
-                  >
-                    {option}
-                  </span>
+                  <span className="text-sm">{label}</span>
                 </button>
               );
             })}

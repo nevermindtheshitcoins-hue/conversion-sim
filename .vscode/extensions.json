@@ -1,5 +1,6 @@
 {
     "recommendations": [
-        "coderabbit.coderabbit-vscode"
+        "coderabbit.coderabbit-vscode",
+        "openai.chatgpt"
     ]
 }

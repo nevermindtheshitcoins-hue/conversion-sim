@@ -1,6 +1,32 @@
-# Business Assessment Tool
+# Conversion‑Sim — Business Assessment Tool
 
-AI-powered conversion assessment with industry-specific questions and 8-factor reports.
+AI‑powered conversion assessment with industry‑specific questions and an 8‑factor report. Built for fast embed into Wix or any site via iframe.
+
+## Features
+- Adaptive questionnaire with industry presets
+- 8‑factor scoring and simple exportable report
+- Fast Wix/HTML embed with responsive layout
+- Local dev with hot‑reload, typed code, and strict linting
+- Testable endpoints and components
+
+## Tech Stack
+- Framework: Next.js 14 (App Router)
+- Language: TypeScript, React 18
+- Styling: Tailwind CSS
+- Testing: Jest + React Testing Library
+- Quality: ESLint, Prettier, Type checks
+- Runtime: Node 18+
+- Package manager: npm
+
+## Project Structure
+```
+/app               # Next.js routes and API
+/components        # UI components
+/lib               # utilities, scoring logic
+/public            # static assets
+/tests             # unit/integration tests
+/docs              # project docs (deployment, ops, architecture, etc.)
+```
 
 ## Quickstart
 
@@ -9,7 +35,7 @@ git clone <repo-url>
 cd conversion-sim
 npm install
 cp .env.example .env.local
-# Add your OPENAI_API_KEY to .env.local
+# Add your OPENAI_API_KEY (and others) to .env.local
 npm run dev
 ```
 
@@ -38,24 +64,89 @@ npm run test:watch
 npm run test:coverage
 ```
 
-## Environments
+## Configuration
 
-### Development
+Environment variables used by the app. Copy `.env.example` to `.env.local` for development.
+
+| Variable | Required | Example | Notes |
+| --- | --- | --- | --- |
+| OPENAI_API_KEY | yes | sk-xxxx | Server‑side usage only. Do not expose publicly. |
+| NEXT_PUBLIC_APP_URL | yes | http://localhost:3000 | Public base URL used in embeds and links. |
+| NODE_ENV | no | development | Automatically set in most runtimes. |
+| PORT | no | 3000 | Dev server port. |
+| LOG_LEVEL | no | info | debug \| info \| warn \| error |
+
+### Environments
+
+#### Development
 ```bash
 cp .env.example .env.local
+npm run dev
 ```
 
-### Production
+#### Staging
 ```bash
-# Set environment variables:
+cp .env.example .env.staging
+# Fill staging values and configure deployment target
+```
+
+#### Production
+Provide environment variables in your host (e.g., Vercel/Render/Fly).
+```bash
+# Required variables
 OPENAI_API_KEY=your_key_here
 NEXT_PUBLIC_APP_URL=https://yourdomain.com
 ```
 
-### Staging
-```bash
-cp .env.example .env.staging
-# Configure staging-specific variables
+## Embedding in Wix (and any site)
+
+### Simple iframe
+```html
+<iframe 
+  src="https://yourdomain.com" 
+  width="100%" 
+  height="800"
+  frameborder="0"
+  allow="clipboard-write; encrypted-media">
+</iframe>
+```
+
+### Responsive embed
+```html
+<div style="position:relative;width:100%;height:0;padding-bottom:56.25%;">
+  <iframe 
+    src="https://yourdomain.com"
+    style="position:absolute;top:0;left:0;width:100%;height:100%;border:0"
+    frameborder="0">
+  </iframe>
+</div>
+```
+
+> If embedding on Wix, use the HTML iframe component. Ensure the app URL in `.env` matches the deployed origin.
+
+## Theming
+
+Tailwind tokens can be overridden in `tailwind.config.js`. Global CSS variables live in `app/globals.css`.
+
+```css
+/* tailwind.config.js */
+theme: {
+  extend: {
+    colors: {
+      primary: '#2563eb',
+      secondary: '#64748b',
+      accent: '#10b981'
+    }
+  }
+}
+```
+
+```css
+/* app/globals.css */
+:root {
+  --primary-color: #2563eb;
+  --secondary-color: #64748b;
+}
 ```
 
 ## Testing
@@ -77,76 +168,9 @@ npm test -- QuestionScreen.test.tsx
 npm run test:coverage
 ```
 
-## Theming
-
-### Colors
-```css
-/* tailwind.config.js */
-theme: {
-  colors: {
-    primary: '#2563eb',
-    secondary: '#64748b',
-    accent: '#10b981'
-  }
-}
-```
-
-### Custom CSS
-```css
-/* globals.css */
-:root {
-  --primary-color: #2563eb;
-  --secondary-color: #64748b;
-}
-```
-
-### Component Styling
-```tsx
-// Override default styles
-<div className="bg-primary text-white p-4 rounded-lg">
-  Custom styled component
-</div>
-```
-
-## Wix Embed
-
-### Iframe Embed
-```html
-<iframe 
-  src="https://yourdomain.com" 
-  width="100%" 
-  height="800px"
-  frameborder="0">
-</iframe>
-```
-
-### Wix HTML Component
-```html
-<div id="assessment-tool"></div>
-<script>
-  const iframe = document.createElement('iframe');
-  iframe.src = 'https://yourdomain.com';
-  iframe.width = '100%';
-  iframe.height = '800px';
-  iframe.frameBorder = '0';
-  document.getElementById('assessment-tool').appendChild(iframe);
-</script>
-```
-
-### Responsive Embed
-```html
-<div style="position: relative; width: 100%; height: 0; padding-bottom: 56.25%;">
-  <iframe 
-    src="https://yourdomain.com"
-    style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"
-    frameborder="0">
-  </iframe>
-</div>
-```
-
 ## Troubleshooting
 
-### Build Issues
+### Build issues
 ```bash
 # Clear cache
 rm -rf .next node_modules package-lock.json
@@ -159,19 +183,19 @@ npm run type-check
 npm run lint:fix
 ```
 
-### Runtime Errors
+### Runtime issues
 ```bash
-# Check logs
+# Start with verbose logs
 npm run dev -- --debug
 
-# Environment variables
+# Verify environment variables
 echo $OPENAI_API_KEY
 
 # Port conflicts
 npm run dev -- --port 3001
 ```
 
-### API Issues
+### API checks
 ```bash
 # Test API endpoint
 curl -X POST http://localhost:3000/api/test \
@@ -184,19 +208,24 @@ node -e "console.log(process.env.OPENAI_API_KEY ? 'API key set' : 'Missing API k
 
 ### Performance
 ```bash
-# Bundle analysis
+# Build + analyze
 npm run build
 npm run analyze
 
-# Lighthouse audit
+# Lighthouse
 npx lighthouse http://localhost:3000 --view
 ```
 
-### Database/Storage
-```bash
-# Clear local storage
-localStorage.clear()
+## Deployment, Operations, and Architecture
 
-# Reset session
-sessionStorage.clear()
-```
+- Deployment guide: [docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md)
+- Operations & runbooks: [docs/OPERATIONS.md](./docs/OPERATIONS.md)
+- Architecture notes: [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md)
+- Security policy: [docs/SECURITY.md](./docs/SECURITY.md)
+- Contributing: [docs/CONTRIBUTING.md](./docs/CONTRIBUTING.md)
+- Changelog: [CHANGELOG.md](./CHANGELOG.md)
+- License: [LICENSE](./LICENSE)
+
+## License
+
+MIT unless replaced. See [LICENSE](./LICENSE).
