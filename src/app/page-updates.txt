@@ -1,0 +1,65 @@
+REQUIRED CHANGES TO src/app/page.tsx:
+
+1. Update aiQuestions state type (line 49):
+   FROM: const [aiQuestions, setAiQuestions] = useState<string[]>([]);
+   TO: const [aiQuestions, setAiQuestions] = useState<Array<{text: string, options: string[]}>>([]);
+
+2. Update getScreenContent() for AI questions (lines 60-63):
+   FROM: return aiQuestions[questionIndex] || 'AI GENERATED QUESTION';
+   TO: return aiQuestions[questionIndex]?.text || 'AI GENERATED QUESTION';
+
+3. Update getOptions() for AI questions (lines 79-90):
+   FROM: return ['Yes, this is a major challenge', ...];
+   TO: return aiQuestions[questionIndex]?.options || [];
+
+4. Add live text display in main screen section (after line 327, inside the else block):
+   ADD after "Pick one below":
+   {(() => {
+     let isTextInput = false;
+     try {
+       const config = getScreenConfig(currentScreen, industry);
+       isTextInput = config.textInput || false;
+     } catch {}
+     
+     if (isTextInput && textInput) {
+       return (
+         <div className="mt-6 p-4 bg-black/20 rounded-lg max-w-2xl mx-auto">
+           <p className="text-sm text-emerald-300 mb-2">Your input:</p>
+           <p className="text-yellow-300">{textInput}</p>
+         </div>
+       );
+     }
+     return null;
+   })()}
+
+5. Update button rendering for blank/grey states (lines 360-420):
+   WRAP the button map in logic to show blank buttons when no options:
+   const options = getOptions();
+   const hasOptions = options.length > 0 && options[0] !== '';
+   
+   return Array.from({length: 7}).map((_, index) => {
+     const option = options[index] || '';
+     const isBlank = !option || !hasOptions;
+     const buttonValue = index + 1;
+     
+     if (isBlank) {
+       return (
+         <button
+           key={index}
+           disabled
+           className="w-full rounded-2xl py-4 px-2 bg-slate-700/30 border border-white/5 cursor-not-allowed"
+         />
+       );
+     }
+     
+     // ... rest of existing button logic
+   });
+
+6. Update processAIGeneration to handle structured questions (line 145):
+   FROM: if (result.questions && Array.isArray(result.questions)) {
+   TO: if (result.questions && Array.isArray(result.questions)) {
+         // Handle both old format (strings) and new format (objects)
+         const formattedQuestions = result.questions.map((q: any) => 
+           typeof q === 'string' ? {text: q, options: []} : q
+         );
+         setAiQuestions(formattedQuestions);
