@@ -1,4 +1,5 @@
 import type { UserJourney } from './journey-tracker';
+import { sendToParent, isInIframe } from './iframe-utils';
 
 interface AnalyticsPattern {
   sessionId: string;
@@ -43,17 +44,22 @@ class AnonymousAnalytics {
   }
 
   private async sendToAnalytics(pattern: AnalyticsPattern) {
+    if (typeof window === 'undefined') return;
+    
     try {
-      // Send to your analytics endpoint
-      const allowedOrigins = [window.location.origin, process.env.NEXT_PUBLIC_APP_URL || window.location.origin];
-      const currentOrigin = window.location.origin;
+      const parentOrigin = document.referrer ? new URL(document.referrer).origin : '';
+      const allowedOrigins = [
+        'https://devoteusa.com',
+        'https://www.devoteusa.com',
+        process.env.NEXT_PUBLIC_IFRAME_PARENT
+      ].filter(Boolean);
       
-      if (allowedOrigins.includes(currentOrigin)) {
+      if (allowedOrigins.includes(parentOrigin) || window === window.parent) {
         await fetch('/api/analytics', {
           method: 'POST',
           headers: { 
             'Content-Type': 'application/json',
-            'Origin': currentOrigin
+            'X-Parent-Origin': parentOrigin
           },
           body: JSON.stringify({
             type: 'journey_pattern',

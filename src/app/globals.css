@@ -14,3 +14,30 @@
 .animate-marquee {
   animation: marquee 20s linear infinite;
 }
+
+/* Iframe-specific styles */
+.iframe-embedded {
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+.iframe-embedded header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.iframe-embedded main {
+  padding: 1rem;
+}
+
+@media (max-width: 768px) {
+  .iframe-embedded main {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .iframe-embedded aside {
+    order: -1;
+  }
+}

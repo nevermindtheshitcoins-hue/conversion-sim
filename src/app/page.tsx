@@ -5,6 +5,7 @@ import { Loader2, RefreshCcw } from 'lucide-react';
 import { generateQuestionsFromPrelims, generateCustomReport } from '../ai/flows/full-context-flow';
 import { JourneyTracker } from '../lib/journey-tracker';
 import { getScreenConfig } from '../lib/screen-config-new';
+import { copyToClipboard, isInIframe, validateParentOrigin } from '../lib/iframe-utils';
 
 const INDUSTRIES = [
   'Technology & Software',
@@ -158,8 +159,15 @@ export default function ConversionTool() {
 
 
 
+  // Validate iframe origin on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined' && isInIframe() && !validateParentOrigin()) {
+      console.error('Unauthorized iframe embedding');
+    }
+  }, []);
+
   return (
-    <div className="min-h-screen w-full bg-[#0a0f12] text-slate-100 flex flex-col font-sans">
+    <div className={`min-h-screen w-full bg-[#0a0f12] text-slate-100 flex flex-col font-sans ${typeof window !== 'undefined' && isInIframe() ? 'iframe-embedded' : ''}`}>
       <header className="flex items-center justify-between px-6 py-4 border-b border-white/10 bg-gradient-to-b from-white/5 to-transparent relative">
         <div className="absolute top-0 left-0 right-0 h-1 bg-black/30">
           <div
@@ -308,14 +316,10 @@ export default function ConversionTool() {
               className="w-16 h-16 rounded-full bg-red-600/80 shadow-[0_0_30px_rgba(220,38,38,0.7)] border border-red-300/20 focus:outline-none focus:ring-2 focus:ring-red-400/70 active:translate-y-px transition-all disabled:opacity-50"
             />
             <button
-              onClick={currentScreenIndex >= SCREEN_ORDER.length ? async () => {
+              onClick={currentScreenIndex >= SCREEN_ORDER.length ? () => {
                 if (reportData && reportData.response) {
-                  try {
-                    const reportText = `FICTIONAL SCENARIO REPORT\n\n${reportData.response}\n\n${reportData.reportFactors?.map((f: any) => `${f.factor}: ${f.analysis} → ${f.recommendation}`).join('\n\n') || ''}`;
-                    await navigator.clipboard.writeText(reportText);
-                  } catch (err) {
-                    console.warn('Clipboard access denied');
-                  }
+                  const reportText = `FICTIONAL SCENARIO REPORT\n\n${reportData.response}\n\n${reportData.reportFactors?.map((f: any) => `${f.factor}: ${f.analysis} → ${f.recommendation}`).join('\n\n') || ''}`;
+                  copyToClipboard(reportText);
                 }
               } : handleConfirm}
               disabled={!canConfirm && currentScreenIndex < SCREEN_ORDER.length}
