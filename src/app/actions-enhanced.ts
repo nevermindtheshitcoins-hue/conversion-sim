@@ -15,10 +15,16 @@ export async function submitSelectionEnhanced(input: EnhancedAIInput) {
       },
     };
   } catch (error) {
-    console.error('Enhanced action error:', error);
+    const sanitizedError = error instanceof Error 
+      ? { message: error.message.replace(/[\r\n\t]/g, '').substring(0, 200), name: error.name }
+      : 'Unknown error';
+    console.error('Enhanced action error:', sanitizedError);
+    const sanitizedUserError = error instanceof Error 
+      ? error.message.replace(/[\r\n\t]/g, '').substring(0, 200)
+      : 'Unknown error occurred';
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error occurred',
+      error: sanitizedUserError,
     };
   }
 }

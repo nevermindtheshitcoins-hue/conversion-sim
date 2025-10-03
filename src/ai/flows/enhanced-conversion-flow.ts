@@ -34,26 +34,25 @@ const EnhancedDiagnoseInputSchema = z.object({
 
 const DiagnoseConversionOutputSchema = z.object({
   response: z.string().describe('The generated response from the AI.'),
-  questions: z.array(z.string()).optional().describe('A list of 5 questions, generated only for the PRELIM_B screen.'),
+  questions: z.array(z.string()).optional().describe('A list of 4-5 questions, generated only for the PRELIM_B screen.'),
 });
 
 export type EnhancedDiagnoseInput = z.infer<typeof EnhancedDiagnoseInputSchema>;
 export type DiagnoseConversionOutput = z.infer<typeof DiagnoseConversionOutputSchema>;
 
-export interface EnhancedAIInput {
-  currentSelection: {
-    buttonNumber: number;
-    buttonText: string;
-    screen: string;
-  };
-  userJourney: UserJourney;
-  screenConfig: ScreenConfig;
-}
+
 
 // Enhanced OpenAI service with full context
 class EnhancedOpenAIService {
   private apiKey: string;
   private baseUrl: string;
+  
+  private static readonly PROMPTS = {
+    PRELIM_B: `You're helping a business visitor assess their needs. Based on their pain point selection "{selection}", generate 4-5 highly targeted, specific questions that will help uncover their exact situation and needs.\n\nReturn JSON with:\n- "response": A brief, encouraging message acknowledging their selection\n- "questions": 4-5 specific questions tailored to their selected pain point\n\nMake questions actionable and diagnostic, not generic.`,
+    Q3_DYNAMIC: `Based on their goal from Q2 and current obstacle selection, generate 4-5 highly specific follow-up questions that dig deeper into their constraint. Some questions may need multiple answers.\n\nReturn JSON with:\n- "response": Brief acknowledgment of their obstacle\n- "questions": 4-5 targeted questions about their specific obstacle that help identify root causes and potential solutions\n\nMake questions diagnostic and solution-oriented.`,
+    Q5_REPORT: `Create a comprehensive, personalized business assessment report. Analyze their complete journey and provide specific, actionable insights based on their exact selections.\n\nReturn JSON with:\n- "response": A detailed report (250-350 words) that:\n  • References their specific selections\n  • Provides tailored recommendations\n  • Includes concrete next steps\n  • Feels uniquely crafted for their situation\n\nMake it feel like a custom consultation, not a generic template.`,
+    DEFAULT: `Provide a brief, contextual response that acknowledges their selection and builds momentum. Reference their journey when relevant.\n\nReturn JSON with:\n- "response": A personalized acknowledgment (1-2 sentences)`
+  };
 
   constructor() {
     this.apiKey = process.env.OPENAI_API_KEY || '';
@@ -107,22 +106,24 @@ class EnhancedOpenAIService {
     
     const currentSelection = `${input.currentSelection.screen}: "${input.currentSelection.buttonText}"`;
     
+    const baseContext = `User Journey Context:\n${journey}\n\nCurrent Selection: ${currentSelection}\n\n`;
+    
     // Generate questions for PRELIM_B
     if (input.currentSelection.screen === 'PRELIM_B') {
-      return `User Journey Context:\n${journey}\n\nCurrent Selection: ${currentSelection}\n\nYou're helping a business visitor assess their needs. Based on their pain point selection "${input.currentSelection.buttonText}", generate 5 highly targeted, specific questions that will help uncover their exact situation and needs.\n\nReturn JSON with:\n- "response": A brief, encouraging message acknowledging their selection\n- "questions": 5 specific questions tailored to their selected pain point\n\nMake questions actionable and diagnostic, not generic.`;
+      return baseContext + EnhancedOpenAIService.PROMPTS.PRELIM_B.replace('{selection}', input.currentSelection.buttonText);
     }
     
     // Generate dynamic questions for Q3 based on their journey
     if (input.currentSelection.screen === 'Q3' && input.screenConfig.aiGenerated) {
-      return `User Journey Context:\n${journey}\n\nCurrent Selection: ${currentSelection}\n\nBased on their goal from Q2 and current obstacle selection, generate 4-5 highly specific follow-up questions that dig deeper into their constraint. Some questions may need multiple answers.\n\nReturn JSON with:\n- "response": Brief acknowledgment of their obstacle\n- "questions": 4-5 targeted questions about their specific obstacle that help identify root causes and potential solutions\n\nMake questions diagnostic and solution-oriented.`;
+      return baseContext + EnhancedOpenAIService.PROMPTS.Q3_DYNAMIC;
     }
     
     // Final comprehensive report
     if (input.currentSelection.screen === 'Q5') {
-      return `Complete User Journey:\n${journey}\nFinal Selection: ${currentSelection}\n\nCreate a comprehensive, personalized business assessment report. Analyze their complete journey and provide specific, actionable insights based on their exact selections.\n\nReturn JSON with:\n- "response": A detailed report (250-350 words) that:\n  • References their specific selections\n  • Provides tailored recommendations\n  • Includes concrete next steps\n  • Feels uniquely crafted for their situation\n\nMake it feel like a custom consultation, not a generic template.`;
+      return `Complete User Journey:\n${journey}\nFinal Selection: ${currentSelection}\n\n` + EnhancedOpenAIService.PROMPTS.Q5_REPORT;
     }
     
-    return `User Journey So Far:\n${journey}\nCurrent: ${currentSelection}\n\nProvide a brief, contextual response that acknowledges their selection and builds momentum. Reference their journey when relevant.\n\nReturn JSON with:\n- "response": A personalized acknowledgment (1-2 sentences)`;
+    return `User Journey So Far:\n${journey}\nCurrent: ${currentSelection}\n\n` + EnhancedOpenAIService.PROMPTS.DEFAULT;
   }
 }
 
@@ -189,8 +190,8 @@ export async function diagnoseConversionEnhanced(input: EnhancedAIInput): Promis
       throw new Error('Invalid AI response: missing or invalid response field');
     }
     if (result.questions) {
-      if (!Array.isArray(result.questions) || result.questions.length !== 5) {
-        throw new Error('Invalid AI response: questions must be an array of 5 strings');
+      if (!Array.isArray(result.questions) || result.questions.length < 4 || result.questions.length > 5) {
+        throw new Error('Invalid AI response: questions must be an array of 4-5 strings');
       }
       if (!result.questions.every((q: string) => typeof q === 'string' && q.length > 0)) {
         throw new Error('Invalid AI response: all questions must be non-empty strings');

@@ -35,10 +35,17 @@ class ErrorBoundary extends React.Component<Props, State> {
     
     console.error('Error caught by boundary:', sanitizedMessage, { componentStack: sanitizedComponentStack });
     // Only send error messages to trusted origins
-    const allowedOrigins = [window.location.origin, 'https://yourdomain.com'];
-    const targetOrigin = allowedOrigins.includes(window.parent?.location?.origin || '') 
-      ? window.parent.location.origin 
-      : window.location.origin;
+    let targetOrigin: string;
+    try {
+      const parentOrigin = window.parent?.location?.origin;
+      const allowedOrigins = [window.location.origin, 'https://yourdomain.com'];
+      targetOrigin = allowedOrigins.includes(parentOrigin || '') 
+        ? (parentOrigin || window.location.origin) 
+        : window.location.origin;
+    } catch (securityError) {
+      // Handle cross-origin iframe SecurityError
+      targetOrigin = window.location.origin;
+    }
       
     window.parent?.postMessage(
       {
@@ -70,7 +77,7 @@ const DefaultErrorFallback: React.FC<{
   <div className="min-h-screen bg-[#0a0f12] text-slate-100 flex items-center justify-center p-6">
     <div className="text-center max-w-md">
       <h1 className="text-2xl font-bold text-red-400 mb-4">Something went wrong</h1>
-      <p className="text-sm text-slate-300 mb-6">{error.message}</p>
+      <p className="text-sm text-slate-300 mb-6">{error.message?.substring(0, 100) || 'An error occurred'}</p>
       <button
         onClick={resetError}
         className="px-6 py-2 bg-emerald-600 hover:bg-emerald-700 rounded-lg transition-colors"

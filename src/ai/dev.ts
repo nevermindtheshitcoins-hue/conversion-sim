@@ -19,8 +19,6 @@
  * @see {@link https://firebase.google.com/docs/genkit} Genkit documentation
  */
 
-'use server';
-
 import { config } from 'dotenv';
 config();
 

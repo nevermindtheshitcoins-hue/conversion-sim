@@ -24,6 +24,15 @@ const TICKER_ITEMS = [
 
 const SCREEN_ORDER = ['PRELIM_1', 'PRELIM_2', 'PRELIM_3', 'Q4', 'Q5', 'Q6', 'Q7', 'Q8', 'REPORT'];
 
+interface ReportData {
+  response: string;
+  reportFactors?: Array<{
+    factor: string;
+    analysis: string;
+    recommendation: string;
+  }>;
+}
+
 export default function ConversionTool() {
   const [currentScreenIndex, setCurrentScreenIndex] = useState(0);
   const [journeyTracker] = useState(() => new JourneyTracker());
@@ -31,7 +40,8 @@ export default function ConversionTool() {
   const [isLoading, setIsLoading] = useState(false);
   const [industry, setIndustry] = useState<string>('');
   const [aiQuestions, setAiQuestions] = useState<string[]>([]);
-  const [reportData, setReportData] = useState<any>(null);
+  
+  const [reportData, setReportData] = useState<ReportData | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const currentScreen = SCREEN_ORDER[currentScreenIndex];
@@ -71,39 +81,45 @@ export default function ConversionTool() {
     }
   };
 
+  const validateSelection = (selection: number | null, options: string[]): boolean => {
+    return selection !== null && selection >= 1 && selection <= options.length;
+  };
+
+  const processAIGeneration = async (screen: string, context: UserJourney, industry: string) => {
+    if (screen === 'PRELIM_3') {
+      const result = await generateQuestionsFromPrelims(context, industry);
+      if (result.questions && Array.isArray(result.questions)) {
+        setAiQuestions(result.questions);
+      }
+    }
+
+    if (screen === 'Q8') {
+      const result = await generateCustomReport(context, industry);
+      setReportData(result);
+    }
+  };
+
   const handleConfirm = async () => {
-    if (tempSelection === null) return;
-    
     const options = getOptions();
-    const buttonText = options[tempSelection - 1];
+    
+    if (!validateSelection(tempSelection, options)) {
+      setError('Invalid selection');
+      return;
+    }
+    
+    const buttonText = options[tempSelection! - 1];
     
     if (currentScreen === 'PRELIM_1') {
       setIndustry(buttonText);
     }
     
-    journeyTracker.addResponse(currentScreen, tempSelection, buttonText);
+    journeyTracker.addResponse(currentScreen, tempSelection!, buttonText);
     setTempSelection(null);
     setError(null);
     setIsLoading(true);
 
     try {
-      if (currentScreen === 'PRELIM_3') {
-        const result = await generateQuestionsFromPrelims(
-          journeyTracker.getFullContext(currentScreen),
-          industry
-        );
-        if (result.questions) {
-          setAiQuestions(result.questions);
-        }
-      }
-
-      if (currentScreen === 'Q8') {
-        const result = await generateCustomReport(
-          journeyTracker.getFullContext(currentScreen),
-          industry
-        );
-        setReportData(result);
-      }
+      await processAIGeneration(currentScreen, journeyTracker.getFullContext(currentScreen), industry);
 
       setTimeout(() => {
         setCurrentScreenIndex(prev => prev + 1);
@@ -205,7 +221,7 @@ export default function ConversionTool() {
                       {reportData.reportFactors && reportData.reportFactors.length > 0 && (
                         <div className="mt-4 space-y-3">
                           <div className="text-emerald-300 font-bold">KEY FACTORS:</div>
-                          {reportData.reportFactors.slice(0, 4).map((factor: any, index: number) => (
+                          {reportData.reportFactors.slice(0, 4).map((factor, index: number) => (
                             <div key={index} className="border-l-2 border-emerald-400/30 pl-3">
                               <div className="text-yellow-300 font-semibold text-xs">{factor.factor}</div>
                               <div className="text-slate-400 text-xs">{factor.analysis}</div>

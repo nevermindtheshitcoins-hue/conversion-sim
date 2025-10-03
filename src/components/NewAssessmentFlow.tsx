@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { JourneyTracker } from '../lib/journey-tracker';
 import { getScreenConfig } from '../lib/screen-config-new';
 import { QuestionScreen } from './screens/QuestionScreen';
@@ -19,15 +19,17 @@ export function NewAssessmentFlow() {
   const [reportData, setReportData] = useState<FullContextOutput | null>(null);
 
   const currentScreen = SCREEN_ORDER[currentScreenIndex];
-  const config = getScreenConfig(currentScreen, industry);
 
+  const QUESTION_START_INDEX = 4;
+  
   // Override config with AI-generated questions if available
-  const getEffectiveConfig = () => {
+  const effectiveConfig = useMemo(() => {
+    const baseConfig = getScreenConfig(currentScreen, industry);
     if (currentScreen.startsWith('Q') && aiQuestions.length > 0) {
-      const questionIndex = parseInt(currentScreen.substring(1)) - 4; // Q4=0, Q5=1, etc.
+      const questionIndex = parseInt(currentScreen.substring(1)) - QUESTION_START_INDEX;
       if (questionIndex >= 0 && questionIndex < aiQuestions.length) {
         return {
-          ...config,
+          ...baseConfig,
           title: aiQuestions[questionIndex],
           options: [
             "Strongly agree",
@@ -39,10 +41,8 @@ export function NewAssessmentFlow() {
         };
       }
     }
-    return config;
-  };
-
-  const effectiveConfig = getEffectiveConfig();
+    return baseConfig;
+  }, [currentScreen, aiQuestions, industry]);
 
   const handleSelection = useCallback(async (buttonNumber: number, buttonText: string, isMultiSelect?: boolean) => {
     if (isMultiSelect && buttonNumber > 0) {
@@ -60,11 +60,14 @@ export function NewAssessmentFlow() {
     // Handle continue or single selection
     if (isMultiSelect && buttonNumber === 0) {
       const combinedText = selectedOptions
+        .filter(num => num > 0 && num <= effectiveConfig.options.length)
         .map(num => effectiveConfig.options[num - 1])
         .join(', ');
       
       for (const optionNum of selectedOptions) {
-        journeyTracker.addResponse(currentScreen, optionNum, effectiveConfig.options[optionNum - 1]);
+        if (optionNum > 0 && optionNum <= effectiveConfig.options.length) {
+          journeyTracker.addResponse(currentScreen, optionNum, effectiveConfig.options[optionNum - 1]);
+        }
       }
       
       buttonText = combinedText;

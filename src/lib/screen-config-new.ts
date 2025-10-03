@@ -93,6 +93,78 @@ export const INDUSTRY_BASED_SCREENS: Record<string, Record<string, ScreenConfig>
       ],
       context: "Financial services pain points"
     }
+  },
+  "E-commerce & Retail": {
+    PRELIM_2: {
+      title: "What's your e-commerce focus?",
+      options: [
+        "Online store optimization",
+        "Inventory management",
+        "Customer experience",
+        "Marketing and advertising",
+        "Supply chain logistics"
+      ],
+      context: "E-commerce specialization identification"
+    },
+    PRELIM_3: {
+      title: "What's your biggest retail challenge?",
+      options: [
+        "Customer acquisition costs",
+        "Inventory turnover",
+        "Competition and pricing",
+        "Seasonal fluctuations",
+        "Technology integration"
+      ],
+      context: "E-commerce pain point identification"
+    }
+  },
+  "Manufacturing": {
+    PRELIM_2: {
+      title: "What's your manufacturing focus?",
+      options: [
+        "Production efficiency",
+        "Quality control",
+        "Supply chain management",
+        "Equipment maintenance",
+        "Workforce management"
+      ],
+      context: "Manufacturing specialization identification"
+    },
+    PRELIM_3: {
+      title: "What's your biggest manufacturing challenge?",
+      options: [
+        "Production costs",
+        "Quality consistency",
+        "Equipment downtime",
+        "Regulatory compliance",
+        "Skilled labor shortage"
+      ],
+      context: "Manufacturing pain point identification"
+    }
+  },
+  "Professional Services": {
+    PRELIM_2: {
+      title: "What's your service focus?",
+      options: [
+        "Client acquisition",
+        "Service delivery",
+        "Team productivity",
+        "Business development",
+        "Operational systems"
+      ],
+      context: "Professional services specialization"
+    },
+    PRELIM_3: {
+      title: "What's your biggest service challenge?",
+      options: [
+        "Client retention",
+        "Project management",
+        "Pricing strategy",
+        "Resource allocation",
+        "Market differentiation"
+      ],
+      context: "Professional services pain points"
+    }
   }
 };
 
@@ -152,7 +224,11 @@ export function getScreenConfig(screenName: string, industry?: string): ScreenCo
         context: "Generic business assessment"
       };
     }
-    return industryScreens[screenName];
+    const screenConfig = industryScreens[screenName];
+    if (!screenConfig) {
+      throw new Error(`Screen configuration not found for ${screenName} in industry ${industry}`);
+    }
+    return screenConfig;
   }
   
   const config = BASE_SCREENS[screenName];

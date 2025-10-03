@@ -35,6 +35,9 @@ class FullContextAIService {
 
   constructor() {
     this.apiKey = process.env.OPENAI_API_KEY || '';
+    if (!this.apiKey) {
+      throw new Error('OPENAI_API_KEY environment variable is required');
+    }
   }
 
   async generateContent(input: FullContextInput): Promise<FullContextOutput> {
@@ -81,7 +84,7 @@ class FullContextAIService {
     ).join('\n');
 
     if (input.requestType === 'generate_questions') {
-      return `Industry: ${input.industry}
+      return `Industry: ${input.industry || 'General Business'}
 User Journey:
 ${journey}
 
@@ -192,7 +195,10 @@ export async function generateQuestionsFromPrelims(userJourney: UserJourney, ind
       industry
     });
   } catch (error) {
-    console.error('Question generation error:', error);
+    const sanitizedError = error instanceof Error 
+      ? error.message.replace(/[\r\n\t]/g, '').substring(0, 100)
+      : 'Unknown error';
+    console.error('Question generation error:', sanitizedError);
     return fullContextService.generateFallback({
       userJourney,
       requestType: 'generate_questions',
@@ -209,7 +215,10 @@ export async function generateCustomReport(userJourney: UserJourney, industry: s
       industry
     });
   } catch (error) {
-    console.error('Report generation error:', error);
+    const sanitizedError = error instanceof Error 
+      ? error.message.replace(/[\r\n\t]/g, '').substring(0, 100)
+      : 'Unknown error';
+    console.error('Report generation error:', sanitizedError);
     return fullContextService.generateFallback({
       userJourney,
       requestType: 'generate_report',

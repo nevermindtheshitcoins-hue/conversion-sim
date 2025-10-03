@@ -34,14 +34,18 @@ class AnonymousAnalytics {
   }
 
   private calculateTimeSpent(responses: any[], index: number): number {
-    if (index === 0) return responses[0].timestamp - Date.now();
-    return responses[index].timestamp - responses[index - 1].timestamp;
+    if (index === 0) {
+      const firstResponse = responses[0];
+      const startTime = firstResponse?.startTime || firstResponse?.timestamp || Date.now();
+      return Math.max(0, firstResponse.timestamp - startTime);
+    }
+    return Math.max(0, responses[index].timestamp - responses[index - 1].timestamp);
   }
 
   private async sendToAnalytics(pattern: AnalyticsPattern) {
     try {
       // Send to your analytics endpoint
-      const allowedOrigins = [window.location.origin, 'https://yourdomain.com'];
+      const allowedOrigins = [window.location.origin, process.env.NEXT_PUBLIC_APP_URL || window.location.origin];
       const currentOrigin = window.location.origin;
       
       if (allowedOrigins.includes(currentOrigin)) {
@@ -64,6 +68,14 @@ class AnonymousAnalytics {
   }
 
   getAggregatedInsights() {
+    if (this.patterns.length === 0) {
+      return {
+        totalSessions: 0,
+        averageCompletionRate: 0,
+        popularPaths: [],
+        averageTimePerScreen: {}
+      };
+    }
     return {
       totalSessions: this.patterns.length,
       averageCompletionRate: this.patterns.reduce((sum, p) => sum + p.completionRate, 0) / this.patterns.length,
@@ -99,7 +111,7 @@ class AnonymousAnalytics {
 
     const averages = new Map<string, number>();
     screenTimes.forEach((times, screen) => {
-      const avg = times.reduce((sum, time) => sum + time, 0) / times.length;
+      const avg = times.length > 0 ? times.reduce((sum, time) => sum + time, 0) / times.length : 0;
       averages.set(screen, avg);
     });
 
