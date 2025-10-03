@@ -76,13 +76,13 @@ const DefaultErrorFallback: React.FC<{
 }> = ({ error, resetError }) => (
   <div className="min-h-screen bg-[#0a0f12] text-slate-100 flex items-center justify-center p-6">
     <div className="text-center max-w-md">
-      <h1 className="text-2xl font-bold text-red-400 mb-4">Something went wrong</h1>
-      <p className="text-sm text-slate-300 mb-6">{error.message?.substring(0, 100) || 'An error occurred'}</p>
+      <h1 className="text-2xl font-bold text-red-400 mb-4">System check failed</h1>
+      <p className="text-sm text-slate-300 mb-6">Refresh and try again.</p>
       <button
         onClick={resetError}
         className="px-6 py-2 bg-emerald-600 hover:bg-emerald-700 rounded-lg transition-colors"
       >
-        Try Again
+Refresh
       </button>
     </div>
   </div>

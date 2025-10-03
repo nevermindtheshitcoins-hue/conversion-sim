@@ -1,29 +1,38 @@
 'use client';
 
-import React, { useState, useCallback, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Loader2, RefreshCcw } from 'lucide-react';
-import { generateQuestionsFromPrelims, generateCustomReport } from '../ai/flows/full-context-flow';
-import { JourneyTracker } from '../lib/journey-tracker';
+import { generateCustomReport, generateQuestionsFromPrelims } from '../ai/flows/full-context-flow';
+import { JourneyTracker, UserJourney } from '../lib/journey-tracker';
 import { getScreenConfig } from '../lib/screen-config-new';
 import { copyToClipboard, isInIframe, validateParentOrigin } from '../lib/iframe-utils';
 
 const INDUSTRIES = [
-  'Technology & Software',
-  'Healthcare & Medical', 
-  'Financial Services',
-  'E-commerce & Retail',
-  'Manufacturing'
+  "Elections & Gov",
+  "Healthcare & Trials",
+  "Supply Chain",
+  "Corporate Decisions",
+  "Education",
+  "Surveys & Polling",
+  "CUSTOM",
 ];
 
 const TICKER_ITEMS = [
-  'INDUSTRY ASSESSMENT',
-  'AI POWERED INSIGHTS',
-  'CUSTOM REPORTS',
-  'BUSINESS OPTIMIZATION',
-  '8-FACTOR ANALYSIS'
+  'AI-driven analysis with verifiable outcomes',
+  'Reports tailored to your deployment',
+  'Clear steps to optimize your business',
+  '8-factor performance breakdown',
+  'Democracy originated in Athens 508 BC with citizen assemblies',
+  'Blockchain enables tamper-proof voting records',
+  'Supply chain fraud costs global economy $52B annually',
+  'Zero-knowledge proofs verify without revealing data',
+  'Estonia has used digital voting since 2014',
+  'RFID tracking reduces supply chain errors by 95%',
+  'Consensus mechanisms ensure distributed agreement',
+  'Smart contracts automate compliance verification',
 ];
 
-const SCREEN_ORDER = ['PRELIM_1', 'PRELIM_2', 'PRELIM_3', 'Q4', 'Q5', 'Q6', 'Q7', 'Q8', 'REPORT'];
+const SCREEN_ORDER = ['PRELIM_1', 'PRELIM_2', 'PRELIM_3', 'PRELIM_4', 'PRELIM_5', 'Q6', 'Q7', 'Q8', 'Q9', 'Q10', 'REPORT'];
 
 interface ReportData {
   response: string;
@@ -52,7 +61,7 @@ export default function ConversionTool() {
     if (currentScreen === 'PRELIM_1') return 'SELECT INDUSTRY';
     if (currentScreen === 'REPORT') return 'YOUR ASSESSMENT';
     if (currentScreen.startsWith('Q') && aiQuestions.length > 0) {
-      const questionIndex = parseInt(currentScreen.substring(1)) - 4;
+      const questionIndex = parseInt(currentScreen.substring(1), 10) - 6;
       return aiQuestions[questionIndex] || 'AI GENERATED QUESTION';
     }
     try {
@@ -71,7 +80,7 @@ export default function ConversionTool() {
         'Somewhat agree - this applies to me partially',
         'Neutral - not sure how this applies',
         'Somewhat disagree - this doesn\'t quite fit',
-        'Strongly disagree - this doesn\'t apply to me'
+        'Strongly disagree - this doesn\'t apply to me',
       ];
     }
     try {
@@ -87,14 +96,14 @@ export default function ConversionTool() {
   };
 
   const processAIGeneration = async (screen: string, context: UserJourney, industry: string) => {
-    if (screen === 'PRELIM_3') {
+    if (screen === 'PRELIM_5') {
       const result = await generateQuestionsFromPrelims(context, industry);
       if (result.questions && Array.isArray(result.questions)) {
         setAiQuestions(result.questions);
       }
     }
 
-    if (screen === 'Q8') {
+    if (screen === 'Q10') {
       const result = await generateCustomReport(context, industry);
       setReportData(result);
     }
@@ -177,7 +186,7 @@ export default function ConversionTool() {
         </div>
         <div className="flex items-center gap-3">
           <div className="h-3 w-3 rounded-full bg-yellow-400 shadow-[0_0_18px_2px_rgba(250,204,21,0.8)]" />
-          <h1 className="text-lg tracking-[0.25em] font-semibold">ASSESSMENT TOOL</h1>
+          <h1 className="text-lg tracking-[0.25em] font-semibold">Business Proof</h1>
         </div>
         <div className="flex items-center gap-2">
           <div className="px-2 py-1 rounded-full text-xs tracking-widest border border-emerald-300/30 bg-emerald-900/30 text-emerald-300">
@@ -190,8 +199,8 @@ export default function ConversionTool() {
         <div className="absolute inset-x-0 top-0 h-1 bg-emerald-400/70 animate-pulse" />
         <div className="relative py-2">
           <div className="flex w-max animate-marquee">
-            {TICKER_ITEMS.map((item, i) => (
-              <span key={i} className="mx-8 text-white/80 text-sm">
+            {[...TICKER_ITEMS, ...TICKER_ITEMS].map((item, i) => (
+              <span key={i} className="mx-8 text-white/90 text-sm font-medium tracking-wide">
                 {item}
               </span>
             ))}
@@ -207,23 +216,23 @@ export default function ConversionTool() {
               <div className="flex flex-col items-center justify-center gap-4 text-center">
                 <Loader2 className="h-16 w-16 animate-spin text-emerald-400" />
                 <h2 className="text-4xl md:text-5xl font-extrabold tracking-widest text-yellow-300 drop-shadow">
-                  {currentScreen === 'PRELIM_3' ? 'GENERATING QUESTIONS...' : 
-                   currentScreen === 'Q8' ? 'CREATING REPORT...' : 
-                   'PROCESSING...'}
+                  {currentScreen === 'PRELIM_5' ? 'Running analysis...' : 
+                   currentScreen === 'Q10' ? 'Checking your business metrics...' : 
+                   'Running analysis...'}
                 </h2>
               </div>
             ) : currentScreenIndex >= SCREEN_ORDER.length ? (
               <div className="text-center h-full flex flex-col justify-center">
                 <h2 className="text-2xl font-extrabold tracking-widest text-yellow-300 drop-shadow mb-4">
-                  FICTIONAL SCENARIO REPORT
+                  Your deployment score
                 </h2>
                 <p className="text-sm tracking-[0.2em] text-emerald-300 mb-4">
-                  Based on your selections. Press Green Button to copy.
+                  Performance breakdown. Press Green Button to copy.
                 </p>
                 <div className="text-left text-sm bg-black/20 p-4 rounded-lg overflow-y-auto max-h-80">
                   {reportData && reportData.response ? (
                     <div className="space-y-4">
-                      <div className="text-yellow-300 font-bold mb-2">SCENARIO ANALYSIS:</div>
+                      <div className="text-yellow-300 font-bold mb-2">DEPLOYMENT ANALYSIS:</div>
                       <div className="text-slate-300 whitespace-pre-wrap">{reportData.response}</div>
                       
                       {reportData.reportFactors && reportData.reportFactors.length > 0 && (
@@ -241,7 +250,7 @@ export default function ConversionTool() {
                     </div>
                   ) : (
                     <div className="text-slate-300">
-                      Your fictional business scenario has been generated based on your industry and responses.
+                      Your business deployment analysis has been generated based on your industry and responses.
                     </div>
                   )}
                 </div>
@@ -252,7 +261,7 @@ export default function ConversionTool() {
                   {getScreenContent()}
                 </h2>
                 <p className="text-sm tracking-[0.35em] text-emerald-300">
-                  SELECT YOUR OPTION BELOW
+                  Pick one below
                 </p>
                 {industry && (
                   <p className="text-xs text-white/60 mt-2">Industry: {industry}</p>
@@ -264,7 +273,7 @@ export default function ConversionTool() {
         
         <aside className="col-span-3 flex flex-col">
           <div className="flex-1 space-y-4">
-            {getOptions().slice(0, 5).map((option, index) => {
+            {getOptions().map((option, index) => {
               const buttonValue = index + 1;
               const isSelected = tempSelection === buttonValue;
               
@@ -273,7 +282,7 @@ export default function ConversionTool() {
                   key={index}
                   onClick={() => setTempSelection(buttonValue)}
                   className={`
-                    w-full rounded-2xl py-6 px-5 grid place-items-center border transition shadow-lg
+                    w-full rounded-2xl py-5 px-2 grid place-items-center border transition shadow-lg
                     focus:outline-none focus:ring-2 focus:ring-cyan-400/60
                     active:translate-y-px
                     ${
@@ -294,7 +303,7 @@ export default function ConversionTool() {
                           : '0 0 8px rgba(253,224,71,0.8), 0 0 14px rgba(253,224,71,0.4)',
                     }}
                   >
-                    {option.length > 20 ? option.substring(0, 20) + '...' : option}
+                    {option.length > 17 ? option.substring(0, 17) + '...' : option}
                   </span>
                 </button>
               );
@@ -318,7 +327,7 @@ export default function ConversionTool() {
             <button
               onClick={currentScreenIndex >= SCREEN_ORDER.length ? () => {
                 if (reportData && reportData.response) {
-                  const reportText = `FICTIONAL SCENARIO REPORT\n\n${reportData.response}\n\n${reportData.reportFactors?.map((f: any) => `${f.factor}: ${f.analysis} → ${f.recommendation}`).join('\n\n') || ''}`;
+                  const reportText = `BUSINESS DEPLOYMENT REPORT\n\n${reportData.response}\n\n${reportData.reportFactors?.map((f: any) => `${f.factor}: ${f.analysis} → ${f.recommendation}`).join('\n\n') || ''}`;
                   copyToClipboard(reportText);
                 }
               } : handleConfirm}
@@ -340,7 +349,7 @@ export default function ConversionTool() {
       <footer className="px-6 py-3 text-[11px] text-white/40 border-t border-white/10">
         <div className="flex items-center gap-4">
           <span>© Business Assessment Tool</span>
-          <span>AI-Powered • Industry-Specific • Custom Reports</span>
+          <span>AI-driven • Industry-specific • Auditable reports</span>
         </div>
       </footer>
     </div>

@@ -4,15 +4,20 @@
 
 @keyframes marquee {
   0% {
-    transform: translateX(0%);
+    transform: translateX(150%);
   }
   100% {
-    transform: translateX(-100%);
+    transform: translateX(-150%);
   }
 }
 
 .animate-marquee {
-  animation: marquee 20s linear infinite;
+  /* This animation rule applies the 'marquee' keyframe animation:
+ * - Duration: 60s (increased from 35s to slow down)
+ * - Timing: Linear (constant speed) 
+ * - Iteration: Infinite (loops forever)
+ * To slow down the animation, increase the duration value
+ */   animation: marquee 100s linear infinite;
 }
 
 /* Iframe-specific styles */
