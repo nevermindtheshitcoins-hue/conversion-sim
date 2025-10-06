@@ -16,8 +16,13 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
     
-    // Log analytics data (replace with actual analytics service)
-    console.log('Analytics:', JSON.stringify(body, null, 2));
+    if (!body || typeof body !== 'object') {
+      return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
+    }
+    
+    // Sanitize and log analytics data (replace with actual analytics service)
+    const sanitized = JSON.stringify(body).replace(/[\r\n\t]/g, ' ').substring(0, 500);
+    console.log('Analytics:', sanitized);
     
     return NextResponse.json({ success: true });
   } catch (error) {

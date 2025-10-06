@@ -23,7 +23,7 @@ class AnonymousAnalytics {
       journey: journey.responses.map((response, index) => ({
         screen: response.screen,
         option: response.buttonNumber,
-        timeSpent: this.calculateTimeSpent(journey.responses, index),
+        timeSpent: this.calculateTimeSpent(journey.responses, index, journey.metadata.startTime),
       })),
       totalTime: Date.now() - journey.metadata.startTime,
       completionRate: journey.responses.length / journey.metadata.totalScreens,
@@ -34,13 +34,19 @@ class AnonymousAnalytics {
     return pattern;
   }
 
-  private calculateTimeSpent(responses: any[], index: number): number {
+  private calculateTimeSpent(
+    responses: { timestamp: number }[],
+    index: number,
+    journeyStartTime?: number
+  ): number {
     if (index === 0) {
-      const firstResponse = responses[0];
-      const startTime = firstResponse?.startTime || firstResponse?.timestamp || Date.now();
-      return Math.max(0, firstResponse.timestamp - startTime);
+      const firstTimestamp = responses[0]?.timestamp ?? Date.now();
+      const start = journeyStartTime ?? firstTimestamp;
+      return Math.max(0, firstTimestamp - start);
     }
-    return Math.max(0, responses[index].timestamp - responses[index - 1].timestamp);
+    const current = responses[index]?.timestamp ?? 0;
+    const previous = responses[index - 1]?.timestamp ?? 0;
+    return Math.max(0, current - previous);
   }
 
   private async sendToAnalytics(pattern: AnalyticsPattern) {

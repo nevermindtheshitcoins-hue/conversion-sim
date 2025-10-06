@@ -19,7 +19,7 @@ export function validateParentOrigin(): boolean {
   }
 }
 
-export function sendToParent(type: string, data: any): void {
+export function sendToParent(type: string, data: unknown): void {
   if (typeof window === 'undefined' || !isInIframe() || !validateParentOrigin()) return;
   
   const parentOrigin = document.referrer ? new URL(document.referrer).origin : '';

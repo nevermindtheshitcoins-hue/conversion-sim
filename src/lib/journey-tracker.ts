@@ -3,6 +3,7 @@ export interface UserResponse {
   buttonNumber: number;
   buttonText: string;
   timestamp: number;
+  textInput?: string;
 }
 
 export interface UserJourney {
@@ -25,12 +26,13 @@ export class JourneyTracker {
     this.startTime = Date.now();
   }
 
-  addResponse(screen: string, buttonNumber: number, buttonText: string) {
+  addResponse(screen: string, buttonNumber: number, buttonText: string, textInput?: string) {
     this.responses.push({
       screen,
       buttonNumber,
       buttonText,
-      timestamp: Date.now()
+      timestamp: Date.now(),
+      textInput
     });
   }
 
