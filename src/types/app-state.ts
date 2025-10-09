@@ -16,6 +16,7 @@ export interface AppState {
   progress: number;
   isLoading: boolean;
   error: string | null;
+  useFpsBudget: boolean;
   
   // Selection state
   tempSelection: number | null;

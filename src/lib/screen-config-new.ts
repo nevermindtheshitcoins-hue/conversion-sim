@@ -12,61 +12,62 @@ export interface ScreenConfig {
 }
 
 export const INDUSTRIES = [
-  'Custom Use Case',
-  'Governance',
-  'Healthcare & Medical Trials',
-  'Supply Chain & Compliance',
-  'Corporate Decision-Making',
-  'Education & Academia',
-  'Surveys & Instant Polling',
+  'Custom Strategic Initiative',
+  'Governance & Public Sector',
+  'Healthcare & Clinical Research',
+  'Supply Chain & Regulatory Compliance',
+  'Corporate Governance & Board Decisions',
+  'Education & Academic Institutions',
+  'Market Research & Stakeholder Polling',
 ] as const;
 
 export const INDUSTRY_BASED_SCREENS: Record<string, Record<string, ScreenConfig>> = {
-  Governance: {
+  'Governance & Public Sector': {
     PRELIM_2: {
-      title: "What's your governance focus?",
+      title: "Which governance domain drives your strategic priorities?",
       options: [
-        'Public elections (government/municipal)',
-        'Union or labor-organization elections',
-        'Corporate/board & shareholder voting',
-        'Community, student or HOA elections',
-        'Referendums and ballot initiatives',
+        'Public elections & civic engagement',
+        'Union & labor organization governance',
+        'Corporate board & shareholder decisions',
+        'Community & HOA governance',
+        'Referendums & policy initiatives',
       ],
-      context: 'Identify the governance domain for tailoring.',
+      context: 'Identify the governance domain for strategic tailoring.',
       industryBased: true,
     },
     PRELIM_3: {
-      title: "What's your biggest governance challenge?",
+      title: "What's your primary strategic barrier to success?",
       options: [
-        'Voter accessibility & turnout',
-        'Preventing fraud & ensuring integrity',
-        'Regulatory/audit compliance',
-        'Technology adoption & digital literacy',
-        'Protecting voter privacy',
+        'Stakeholder participation & engagement rates',
+        'Trust, fraud prevention & integrity assurance',
+        'Regulatory compliance & audit readiness',
+        'Digital transformation & adoption barriers',
+        'Privacy protection & data sovereignty',
       ],
-      context: 'Surface primary pain points to guide the follow-ups.',
+      context: 'Surface strategic pain points to guide executive recommendations.',
       industryBased: true,
     },
   },
-  'Custom Use Case': {
+  'Custom Strategic Initiative': {
     PRELIM_2: {
-      title: 'Describe your scenario',
+      title: 'Describe your strategic initiative or use case',
+      subtitle: 'Be specific about the business problem you\'re solving',
       options: [],
-      context: 'Custom scenario description for DeVOTE pilot simulation.',
+      context: 'Custom strategic scenario for DeVOTE pilot simulation.',
       industryBased: true,
       textInput: true,
     },
     PRELIM_3: {
-      title: 'What kind of decision/process do you want to simulate?',
+      title: 'What type of decision-making process requires transformation?',
       options: [
-        'Governance vote / resolution',
-        'Consent or approval flow',
-        'Survey / poll',
-        'Resource allocation / prioritization',
-        'Risk or compliance attestation',
-        'Other (type in)',
+        'Strategic governance & board resolutions',
+        'Stakeholder consent & approval workflows',
+        'Market research & stakeholder polling',
+        'Resource allocation & budget prioritization',
+        'Risk assessment & compliance attestation',
+        'Other strategic process',
       ],
-      context: 'Identify the process archetype to tailor logic.',
+      context: 'Identify the strategic process archetype for tailored recommendations.',
       industryBased: true,
     },
   },
@@ -74,9 +75,10 @@ export const INDUSTRY_BASED_SCREENS: Record<string, Record<string, ScreenConfig>
 
 export const BASE_SCREENS: Record<string, ScreenConfig> = {
   PRELIM_1: {
-    title: 'What industry are you in?',
+    title: 'Select Your Strategic Focus Area',
+    subtitle: 'Choose the domain that best aligns with your organization\'s priorities',
     options: [...INDUSTRIES],
-    context: 'Industry identification for customized assessment',
+    context: 'Strategic focus area identification for executive-level assessment',
   },
   Q4: {
     title: 'AI Generated Question 4',
@@ -111,15 +113,16 @@ export function getScreenConfig(screenName: string, industry?: string): ScreenCo
     const industryScreens = INDUSTRY_BASED_SCREENS[industry];
     if (!industryScreens) {
       return {
-        title: screenName === 'PRELIM_2' ? "What's your primary focus?" : "What's your biggest challenge?",
+        title: screenName === 'PRELIM_2' ? "What's your primary strategic objective?" : "What's your most critical organizational challenge?",
+        subtitle: screenName === 'PRELIM_2' ? 'Select the area requiring immediate executive attention' : 'Identify the barrier preventing strategic success',
         options: [
-          'Growth and scaling',
-          'Operational efficiency',
-          'Customer/participant acquisition',
-          'Team/committee management',
-          'Technology adoption',
+          'Accelerated growth & market expansion',
+          'Operational excellence & efficiency gains',
+          'Stakeholder engagement & acquisition',
+          'Organizational governance & management',
+          'Digital transformation & technology adoption',
         ],
-        context: 'Generic decision-making assessment',
+        context: 'Executive-level strategic assessment',
       };
     }
     const screenConfig = industryScreens[screenName];

@@ -6,6 +6,40 @@ import { getScreenConfig } from '../lib/screen-config-new';
 
 const SCREEN_SEQUENCE = ['PRELIM_1', 'PRELIM_2', 'PRELIM_3', 'Q4', 'Q5', 'Q6', 'Q7', 'REPORT'];
 
+
+type TransitionValidation = {
+  valid: boolean;
+  reason?: string;
+};
+
+const validateTransition = (currentState: AppState): TransitionValidation => {
+  if (currentState.isTextInput) {
+    if (currentState.textValue.trim().length < 5) {
+      return { valid: false, reason: 'Please enter at least 5 characters' };
+    }
+  } else if (currentState.isMultiSelect) {
+    if (currentState.multiSelections.length === 0) {
+      return { valid: false, reason: 'Please select at least one option' };
+    }
+  } else if (currentState.currentScreen !== 'REPORT') {
+    if (currentState.tempSelection === null) {
+      return { valid: false, reason: 'Please select an option' };
+    }
+  }
+
+  return { valid: true };
+};
+
+const shouldDisableMotion = () => {
+  if (typeof window === 'undefined') {
+    return false;
+  }
+
+  const prefersReducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+  const isMobile = /Mobi|Android/i.test(window.navigator.userAgent);
+  return prefersReducedMotion || isMobile;
+};
+
 export function useAssessmentFlow() {
   const [journeyTracker] = useState(() => new JourneyTracker());
   const [state, setState] = useState<AppState>({
@@ -30,9 +64,17 @@ export function useAssessmentFlow() {
     isMultiSelect: false,
     maxSelections: 1,
     aiGenerated: false,
+    useFpsBudget: true,
   });
 
   const [aiQuestions, setAiQuestions] = useState<AIGeneratedQuestions | null>(null);
+
+  useEffect(() => {
+    const disableMotion = shouldDisableMotion();
+    if (disableMotion) {
+      setState(prev => (prev.useFpsBudget ? { ...prev, useFpsBudget: false } : prev));
+    }
+  }, []);
 
   // Update screen configuration when screen changes
   useEffect(() => {
@@ -41,7 +83,8 @@ export function useAssessmentFlow() {
         setState(prev => ({
           ...prev,
           isReport: true,
-          currentTitle: 'Your Deployment Report',
+          currentTitle: 'Strategic Business Case & Value Proposition',
+          currentSubtitle: 'Executive Assessment Report',
           currentOptions: [],
           isTextInput: false,
           isMultiSelect: false,
@@ -183,15 +226,23 @@ export function useAssessmentFlow() {
         throw new Error('Invalid report format');
       }
 
-      setState(prev => ({
-        ...prev,
-        currentScreen: 'REPORT',
-        currentScreenIndex: SCREEN_SEQUENCE.length - 1,
-        progress: 100,
-        reportData,
-        isReport: true,
-        isLoading: false,
-      }));
+      setState(prev => {
+        const nextState: AppState = {
+          ...prev,
+          currentScreen: 'REPORT',
+          currentScreenIndex: SCREEN_SEQUENCE.length - 1,
+          progress: 100,
+          reportData,
+          isReport: true,
+          isLoading: false,
+          tempSelection: null,
+          multiSelections: [],
+          textValue: '',
+          hoveredOption: null,
+        };
+
+        return nextState;
+      });
     } catch (error) {
       setState(prev => ({
         ...prev,
@@ -202,64 +253,64 @@ export function useAssessmentFlow() {
   }, [journeyTracker, state.customScenario, state.industry]);
 
   const handleConfirm = useCallback(async () => {
-    // Validate input
-    if (state.isTextInput) {
-      if (state.textValue.trim().length < 5) {
-        setState(prev => ({ ...prev, error: 'Please enter at least 5 characters' }));
-        return;
-      }
-      
-      // Save text input to journey
-      journeyTracker.addResponse(state.currentScreen, 0, state.textValue.trim(), state.textValue.trim());
-      
-      // Store custom scenario if this is PRELIM_2
-      if (state.currentScreen === 'PRELIM_2' && state.industry === 'Custom Use Case') {
-        setState(prev => ({ ...prev, customScenario: state.textValue.trim() }));
-      }
-    } else if (state.isMultiSelect) {
-      if (state.multiSelections.length === 0) {
-        setState(prev => ({ ...prev, error: 'Please select at least one option' }));
-        return;
-      }
-      
-      // Save multi-selections
-      const selectedTexts = state.multiSelections.map(val => state.currentOptions[val - 1]).join(', ');
-      journeyTracker.addResponse(state.currentScreen, state.multiSelections[0], selectedTexts);
-    } else {
-      if (state.tempSelection === null) {
-        setState(prev => ({ ...prev, error: 'Please select an option' }));
-        return;
-      }
-      
-      const selectedText = state.currentOptions[state.tempSelection - 1];
-      journeyTracker.addResponse(state.currentScreen, state.tempSelection, selectedText);
-      
-      // Store industry if this is PRELIM_1
-      if (state.currentScreen === 'PRELIM_1') {
-        setState(prev => ({ ...prev, industry: selectedText }));
-      }
+    const validation = validateTransition(state);
+
+    if (!validation.valid) {
+      setState(prev => ({ ...prev, error: validation.reason ?? 'Please complete required fields' }));
+      return;
     }
 
-    // Move to next screen
+    if (state.isTextInput) {
+      const trimmed = state.textValue.trim();
+      journeyTracker.addResponse(state.currentScreen, 0, trimmed, trimmed);
+    } else if (state.isMultiSelect) {
+      const selectedTexts = state.multiSelections
+        .map(val => state.currentOptions[val - 1])
+        .join(', ');
+      journeyTracker.addResponse(state.currentScreen, state.multiSelections[0], selectedTexts);
+    } else if (state.tempSelection !== null) {
+      const selectedText = state.currentOptions[state.tempSelection - 1];
+      journeyTracker.addResponse(state.currentScreen, state.tempSelection, selectedText);
+    }
+
     const nextIndex = state.currentScreenIndex + 1;
-    
+
     if (nextIndex >= SCREEN_SEQUENCE.length - 1) {
-      // Generate report
       await generateReport();
-    } else {
-      const nextScreen = SCREEN_SEQUENCE[nextIndex];
-      setState(prev => ({
+      return;
+    }
+
+    const nextScreen = SCREEN_SEQUENCE[nextIndex];
+    const nextProgress = (nextIndex / (SCREEN_SEQUENCE.length - 1)) * 100;
+    const trimmedValue = state.textValue.trim();
+    const selectedOption =
+      state.tempSelection != null ? state.currentOptions[state.tempSelection - 1] : null;
+
+    setState(prev => {
+      const nextState: AppState = {
         ...prev,
         currentScreen: nextScreen,
         currentScreenIndex: nextIndex,
-        progress: (nextIndex / (SCREEN_SEQUENCE.length - 1)) * 100,
+        progress: nextProgress,
         tempSelection: null,
         multiSelections: [],
         textValue: '',
         error: null,
-      }));
-    }
-  }, [state, journeyTracker]);
+        isReport: false,
+        hoveredOption: null,
+      };
+
+      if (state.isTextInput && prev.currentScreen === 'PRELIM_2' && prev.industry === 'Custom Strategic Initiative') {
+        nextState.customScenario = trimmedValue;
+      }
+
+      if (!state.isTextInput && !state.isMultiSelect && selectedOption && prev.currentScreen === 'PRELIM_1') {
+        nextState.industry = selectedOption;
+      }
+
+      return nextState;
+    });
+  }, [state, journeyTracker, generateReport]);
 
 
 
@@ -268,18 +319,22 @@ export function useAssessmentFlow() {
       const prevIndex = state.currentScreenIndex - 1;
       const prevScreen = SCREEN_SEQUENCE[prevIndex];
       
-      setState(prev => ({
-        ...prev,
-        currentScreen: prevScreen,
-        currentScreenIndex: prevIndex,
-        progress: (prevIndex / (SCREEN_SEQUENCE.length - 1)) * 100,
-        tempSelection: null,
-        multiSelections: [],
-        textValue: '',
-        error: null,
-        isReport: false,
-        hoveredOption: null,
-      }));
+      setState(prev => {
+        const nextState: AppState = {
+          ...prev,
+          currentScreen: prevScreen,
+          currentScreenIndex: prevIndex,
+          progress: (prevIndex / (SCREEN_SEQUENCE.length - 1)) * 100,
+          tempSelection: null,
+          multiSelections: [],
+          textValue: '',
+          error: null,
+          isReport: false,
+          hoveredOption: null,
+        };
+
+        return nextState;
+      });
     }
   }, [state.currentScreenIndex]);
 
@@ -308,6 +363,7 @@ export function useAssessmentFlow() {
       isMultiSelect: false,
       maxSelections: 1,
       aiGenerated: false,
+      useFpsBudget: !shouldDisableMotion(),
     });
   }, [journeyTracker]);
 

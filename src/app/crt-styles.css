@@ -1,0 +1,36 @@
+/* CRT Screen Effects */
+.crt-content {
+  position: relative;
+  z-index: 1;
+}
+
+.crt-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.scanlines {
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(255,255,255,0.05) 1px,
+    transparent 2px
+  );
+  animation: scanline-flicker 3s linear infinite;
+}
+
+@keyframes scanline-flicker {
+  0%, 100% { opacity: 0.95; }
+  50% { opacity: 0.85; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scanlines {
+    animation: none;
+  }
+}

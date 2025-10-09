@@ -80,7 +80,7 @@ export function Buttons({
           </div>
         </div>
 
-        {isTextInput ? (
+        {isTextInput && (
           <div className="space-y-3">
             <textarea
               value={textValue}
@@ -88,46 +88,48 @@ export function Buttons({
               placeholder="Describe your scenario where DeVOTE technology could be used..."
               className="w-full h-48 rounded-xl border border-zinc-800 bg-[#0f141c] px-4 py-3 text-sm text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-emerald-400/60"
               maxLength={500}
+              autoFocus
             />
             <div className="text-xs text-zinc-500 text-center">
               {textValue.length}/500 characters (minimum 5)
             </div>
           </div>
-        ) : (
-          <div className="space-y-3">
-            {options.length > 0 ? (
-              options.map((label, index) => {
-                const value = index + 1;
-                const active = isMultiSelect
-                  ? multiSelections.includes(value)
-                  : tempSelection === value;
-
-                return (
-                  <button
-                    key={value}
-                    type="button"
-                    onClick={() => onSelect(value, isMultiSelect)}
-                    onMouseEnter={() => onHover(value)}
-                    onMouseLeave={() => onHover(null)}
-                    className={`w-full rounded-xl border px-5 py-4 text-left transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#090d12] ${
-                      active
-                        ? 'border-yellow-300 bg-[#151d29] text-yellow-200'
-                        : 'border-zinc-800 bg-[#10151c] text-zinc-100 hover:border-yellow-300/60 hover:bg-[#131a24]'
-                    }`}
-                    data-button-click-sound={buttonClickSound}
-                    data-button-press-effect={buttonPressEffect}
-                  >
-                    <span className="text-sm font-medium leading-relaxed">{label}</span>
-                  </button>
-                );
-              })
-            ) : (
-              <p className="text-sm text-zinc-500">
-                Options will appear once this step loads.
-              </p>
-            )}
-          </div>
         )}
+
+        <div className={`space-y-3 transition-opacity duration-200 ${isTextInput ? 'opacity-40 pointer-events-none' : ''}`}>
+          {options && options.length > 0 ? (
+            options.map((label, index) => {
+              const value = index + 1;
+              const active = isMultiSelect
+                ? multiSelections.includes(value)
+                : tempSelection === value;
+
+              return (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => onSelect(value, isMultiSelect)}
+                  onMouseEnter={() => onHover(value)}
+                  onMouseLeave={() => onHover(null)}
+                  className={`w-full rounded-xl border px-5 py-4 text-left transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#090d12] ${
+                    active
+                      ? 'border-yellow-300 bg-[#151d29] text-yellow-200'
+                      : 'border-zinc-800 bg-[#10151c] text-zinc-100 hover:border-yellow-300/60 hover:bg-[#131a24]'
+                  }`}
+                  data-button-click-sound={buttonClickSound}
+                  data-button-press-effect={buttonPressEffect}
+                  disabled={isTextInput}
+                >
+                  <span className="text-sm font-medium leading-relaxed">{label}</span>
+                </button>
+              );
+            })
+          ) : (
+            <p className="text-sm text-zinc-500">
+              Options will appear once this step loads.
+            </p>
+          )}
+        </div>
 
         {error && (
           <div
