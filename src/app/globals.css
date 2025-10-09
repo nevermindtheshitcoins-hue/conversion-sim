@@ -423,3 +423,11 @@ textarea:focus {
   25%,75% { box-shadow: 0 0 0 6px rgba(255,77,79,0.45); }
   50%     { box-shadow: 0 0 0 3px rgba(255,77,79,0.25); }
 }
+
+.chat-box {
+  font-family: 'Courier New', monospace;
+  background: linear-gradient(rgba(10,20,15,0.8), rgba(5,10,7,0.9));
+  border: 1px solid #00ff88;
+  box-shadow: 0 0 15px rgba(0,255,136,0.2);
+  min-height: 300px;
+}

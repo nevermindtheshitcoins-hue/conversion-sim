@@ -1,10 +1,10 @@
 'use client';
 
-import { useMemo, useEffect } from 'react';
+import { useEffect } from 'react';
 import { AppContainer } from '../components/AppContainer';
 import { QuestionsAndAnswers } from '../components/QuestionsAndAnswers';
 import { ControlPanel } from '../components/ControlPanel';
-import type { Selection } from '../components/Buttons';
+import { RefreshCcw } from 'lucide-react';
 import { useAssessmentFlow } from '../hooks/useAssessmentFlow';
 import { useProgressService } from '../hooks/useProgressService';
 import CRTShell from '../components/CRTShell';
@@ -28,106 +28,115 @@ export default function MainApp() {
     setCurrentStep(Math.min(state.currentScreenIndex + 1, totalSteps));
   }, [state.currentScreenIndex, totalSteps, setCurrentStep]);
 
-  const selections = useMemo<Selection[]>(() => {
-    return state.currentOptions.map((label, index) => {
-      const id = index + 1;
-      const isActive = state.isMultiSelect
-        ? state.multiSelections.includes(id)
-        : state.tempSelection === id;
-
-      return {
-        id,
-        label,
-        active: isActive,
-      };
-    });
-  }, [state.currentOptions, state.isMultiSelect, state.multiSelections, state.tempSelection]);
-
-  const textInputMeta = state.isTextInput
-    ? {
-        value: state.textValue,
-        onChange: handlers.handleTextChange,
-        placeholder: 'Describe your scenario where DeVOTE technology could be used...',
-        maxLength: 500,
-        minLength: 5,
-      }
-    : undefined;
-
-  const progressMeta = {
-    currentStep,
-    totalSteps,
-    percent: progressPercent,
-    label: `Step ${currentStep} of ${totalSteps}`,
-  };
-
-  const handleSelection = (selection: Selection) => {
-    handlers.handleSelection(selection.id, state.isMultiSelect);
-  };
-
-  const statusMessages = state.error ? (
-    <div className="flex flex-col items-end gap-2">
-      <div className="inline-flex max-w-xs items-center gap-2 rounded-lg border border-red-500/40 bg-red-900/70 px-3 py-2 text-[0.7rem] font-semibold uppercase tracking-[0.25em] text-red-100 shadow-lg">
-        <span>{state.error}</span>
+  const headerZone = (
+    <div>
+      <div className="mb-2 flex items-center justify-between text-xs uppercase tracking-[0.35em] text-zinc-500">
+        <span>Step {currentStep} of {totalSteps}</span>
+        <span>Progress</span>
+      </div>
+      <div className="h-2 rounded-full bg-zinc-900 overflow-hidden">
+        <div
+          className="h-full bg-gradient-to-r from-emerald-400 to-emerald-300 transition-all duration-300"
+          style={{ width: `${progressPercent}%` }}
+        />
       </div>
     </div>
-  ) : null;
+  );
 
-  const screen = (
-    <CRTShell
-      status={statusMessages}
-      disableMotion={!useFpsBudget}
-      scanlines={useFpsBudget}
-    >
-      <div className="space-y-6">
-        <div className="flex items-center justify-between text-xs uppercase tracking-[0.45em] text-zinc-500">
-          <div className="flex items-center gap-3">
-            <span className="h-2.5 w-2.5 rounded-full bg-yellow-300" />
-            <span>Business Proof</span>
-          </div>
-          <span className="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-300 font-medium tracking-normal">
-            Step {currentStep}
-          </span>
-        </div>
-        <div className="h-1 rounded-full bg-zinc-800 overflow-hidden">
-          <div
-            className="h-full bg-gradient-to-r from-emerald-400 to-emerald-300 transition-all duration-300"
-            style={{ width: `${progressPercent}%` }}
+  const screenZone = (
+    <div className="tv-screen h-full w-full bg-black border-8 border-zinc-800 rounded-lg p-8 flex flex-col">
+      {state.isTextInput ? (
+        <div className="flex-1 flex flex-col justify-center">
+          <h2 className="text-4xl font-bold uppercase text-yellow-300 mb-8 text-center">Describe Your Scenario</h2>
+          <textarea
+            value={state.textValue}
+            onChange={(e) => handlers.handleTextChange(e.target.value)}
+            placeholder="Enter your custom scenario..."
+            className="w-full h-64 rounded-lg border-2 border-zinc-700 bg-zinc-900 px-4 py-3 text-lg text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-emerald-500"
+            maxLength={500}
+            autoFocus
           />
+          <div className="text-sm text-zinc-500 text-right mt-2">
+            {state.textValue.length}/500
+          </div>
         </div>
+      ) : (
         <QuestionsAndAnswers
           title={state.currentTitle}
           subtitle={state.currentSubtitle}
           industry={state.industry || ''}
           isLoading={state.isLoading}
           reportData={state.reportData}
-          showTextPreview={state.isTextInput && state.textValue.length > 0}
+          showTextPreview={false}
           textPreview={state.textValue}
           hoveredOptionLabel={hoveredOptionLabel}
         />
-      </div>
-    </CRTShell>
+      )}
+      {state.error && (
+        <div className="mt-4 rounded-lg border-2 border-red-500 bg-red-900/20 px-4 py-3 text-center text-red-200" role="alert">
+          {state.error}
+        </div>
+      )}
+    </div>
   );
 
-  const controls = (
+  const keypadZone = (
     <ControlPanel
-      selections={selections}
-      multiSelect={state.isMultiSelect}
-      onSelect={handleSelection}
-      onConfirm={handlers.handleConfirm}
-      canConfirm={navigationState.canConfirm}
-      ariaDisabled={!navigationState.canConfirm && !state.isReport}
-      onBack={handlers.handleBack}
-      onReset={handlers.handleReset}
-      error={state.error}
-      progress={progressMeta}
-      textInput={textInputMeta}
-      isReport={state.isReport}
-      onCopyReport={handlers.handleCopyReport}
-      isFirstStep={navigationState.isFirstScreen}
-      hoveredSelectionId={state.hoveredOption}
+      options={state.currentOptions}
+      tempSelection={state.tempSelection}
+      multiSelections={state.multiSelections}
+      isMultiSelect={state.isMultiSelect}
+      isTextInput={state.isTextInput}
+      onSelect={handlers.handleSelection}
       onHover={handlers.handleHover}
     />
   );
 
-  return <AppContainer screen={screen} controls={controls} />;
+  const footerZone = (
+    <div className="flex items-center justify-between px-4">
+      <button
+        type="button"
+        onClick={handlers.handleReset}
+        aria-label="Reset"
+        className="h-14 w-14 rounded-full bg-yellow-500 border-4 border-yellow-700 shadow-lg hover:bg-yellow-400 active:scale-95 transition-transform"
+      >
+        <RefreshCcw className="h-6 w-6 mx-auto text-yellow-900" />
+      </button>
+      <div className="flex items-center gap-6">
+        <button
+          type="button"
+          onClick={handlers.handleBack}
+          disabled={navigationState.isFirstScreen}
+          aria-label="Back"
+          className="h-20 w-20 rounded-full bg-red-600 border-4 border-red-800 shadow-xl hover:bg-red-500 active:scale-95 transition-transform disabled:opacity-30 disabled:cursor-not-allowed"
+        />
+        <button
+          type="button"
+          onClick={state.isReport ? handlers.handleCopyReport : handlers.handleConfirm}
+          disabled={!navigationState.canConfirm && !state.isReport}
+          aria-label="Confirm"
+          className={`h-20 w-20 rounded-full border-4 shadow-xl active:scale-95 transition-transform ${
+            navigationState.canConfirm || state.isReport
+              ? 'bg-emerald-500 border-emerald-700 hover:bg-emerald-400'
+              : 'bg-emerald-900 border-emerald-950 opacity-30 cursor-not-allowed'
+          }`}
+        />
+      </div>
+    </div>
+  );
+
+  return (
+    <AppContainer
+      screen={
+        <CRTShell
+          headerZone={headerZone}
+          screenZone={screenZone}
+          keypadZone={keypadZone}
+          footerZone={footerZone}
+          disableMotion={!useFpsBudget}
+          scanlines={useFpsBudget}
+        />
+      }
+    />
+  );
 }

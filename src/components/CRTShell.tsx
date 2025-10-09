@@ -1,32 +1,37 @@
 import type { ReactNode } from 'react';
 
 export type CRTShellProps = {
-  children: ReactNode;
+  headerZone: ReactNode;
+  screenZone: ReactNode;
+  keypadZone: ReactNode;
+  footerZone: ReactNode;
   scanlines?: boolean;
   vignette?: boolean;
-  status?: ReactNode;
   disableMotion?: boolean;
 };
 
+// Analogue machine interface: fixed display screen + fixed keypad controls
+
 export default function CRTShell({
-  children,
+  headerZone,
+  screenZone,
+  keypadZone,
+  footerZone,
   scanlines = true,
   vignette = true,
-  status,
   disableMotion = false,
 }: CRTShellProps) {
   return (
-    <div className="crt-screen relative">
-      <div className="crt-content">{children}</div>
-      {status ? (
-        <div
-          className="crt-status pointer-events-auto absolute right-4 top-4 z-30 max-w-xs text-right text-sm"
-          role="status"
-          aria-live="polite"
-        >
-          {status}
-        </div>
-      ) : null}
+    <div className="crt-container relative flex flex-col h-screen">
+      <div className="header-zone h-16">{headerZone}</div>
+      
+      <div className="content-area flex-1 flex flex-row gap-4">
+        <div className="screen-zone flex-1">{screenZone}</div>
+        <div className="keypad-zone w-1/4">{keypadZone}</div>
+      </div>
+      
+      <div className="footer-zone h-16">{footerZone}</div>
+      
       {scanlines && !disableMotion ? (
         <div className="crt-overlay scanlines" aria-hidden="true" />
       ) : null}

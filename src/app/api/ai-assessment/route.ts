@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+// 4-Zone CRT Architecture: API receives zone-based state from client
 import type { UserJourney } from '../../../lib/journey-tracker';
 import crypto from 'crypto';
 import { canonicalizePayload, hmacSign, isRecentTimestamp, consumeNonce, sanitizeForLog } from '../../../lib/security';
