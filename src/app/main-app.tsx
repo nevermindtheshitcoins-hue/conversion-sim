@@ -2,7 +2,6 @@
 
 import { useEffect } from 'react';
 import { AppContainer } from '../components/AppContainer';
-import { QuestionsAndAnswers } from '../components/QuestionsAndAnswers';
 import { ControlPanel } from '../components/ControlPanel';
 import { ZonedScreen } from '../components/ZonedScreen';
 import { RefreshCcw } from 'lucide-react';
@@ -36,19 +35,6 @@ export default function MainApp() {
     : state.isLoading 
     ? 'loading' 
     : 'active';
-
-  const helpText = (() => {
-    if (state.isReport) {
-      return 'Use the green button to copy or confirm the report.';
-    }
-    if (state.isTextInput) {
-      return 'Type your response and press confirm when ready.';
-    }
-    if (state.isMultiSelect) {
-      return 'Select all relevant options, then press confirm.';
-    }
-    return 'Highlight an option with the dial and press confirm.';
-  })();
 
   const keypadZone = (
     <ControlPanel
@@ -105,23 +91,17 @@ export default function MainApp() {
           progressPercent={progressPercent}
           status={headerStatus}
           contentType={state.contentType || ContentType.SINGLE_CHOICE}
+          title={state.currentTitle}
+          subtitle={state.currentSubtitle}
+          industry={state.industry}
+          options={state.currentOptions}
+          isLoading={state.isLoading}
+          reportData={state.reportData}
+          textValue={state.textValue}
           error={state.error}
           hoveredText={hoveredOptionLabel}
-          helpText={helpText}
           disableAnimations={!useFpsBudget}
-        >
-          {/* Keep existing QuestionsAndAnswers for now - will be replaced in Round 3 */}
-          <QuestionsAndAnswers
-            title={state.currentTitle}
-            subtitle={state.currentSubtitle}
-            industry={state.industry || ''}
-            isLoading={state.isLoading}
-            reportData={state.reportData}
-            showTextPreview={state.isTextInput && state.textValue.length > 0}
-            textPreview={state.textValue}
-            hoveredOptionLabel={hoveredOptionLabel}
-          />
-        </ZonedScreen>
+        />
       }
       keypadZone={keypadZone}
       footerZone={footerZone}

@@ -3,6 +3,9 @@ import { HeaderZone } from './zones/HeaderZone';
 import { MainZone } from './zones/MainZone';
 import { FooterZone, createFooterMessage, type FooterMessage } from './zones/FooterZone';
 import { ContentType } from '../types/app-state';
+import type { ReportData } from '../types/report';
+import { SCREEN_TEXTS } from '../config/screen-text';
+import { PRESENTERS, type ScreenPresenterProps } from './presenters';
 
 export interface ZonedScreenProps {
   // Header props
@@ -13,12 +16,17 @@ export interface ZonedScreenProps {
   
   // Main props
   contentType: ContentType;
-  children: React.ReactNode;
+  title: string;
+  subtitle?: string;
+  industry: string | null;
+  options: string[];
+  isLoading: boolean;
+  reportData: ReportData | null;
+  textValue: string;
   
   // Footer props
   error?: string | null;
   hoveredText?: string;
-  helpText?: string;
   
   // Global
   disableAnimations?: boolean;
@@ -30,12 +38,30 @@ export function ZonedScreen({
   progressPercent,
   status = 'active',
   contentType,
-  children,
+  title,
+  subtitle,
+  industry,
+  options,
+  isLoading,
+  reportData,
+  textValue,
   error,
   hoveredText,
-  helpText,
   disableAnimations = false,
 }: ZonedScreenProps) {
+  const helpText = (() => {
+    switch (contentType) {
+      case ContentType.REPORT_VIEW:
+        return SCREEN_TEXTS.helpHints.report;
+      case ContentType.TEXT_INPUT:
+        return SCREEN_TEXTS.helpHints.textInput;
+      case ContentType.MULTI_CHOICE:
+        return SCREEN_TEXTS.helpHints.multiSelect;
+      default:
+        return SCREEN_TEXTS.helpHints.default;
+    }
+  })();
+
   // Build footer messages with priority system
   const messages: FooterMessage[] = [];
   
@@ -47,9 +73,29 @@ export function ZonedScreen({
     messages.push(createFooterMessage('hover', hoveredText, 30));
   }
   
-  if (helpText && !error && !hoveredText) {
+  if (!error && !hoveredText && helpText) {
     messages.push(createFooterMessage('help', helpText, 10));
   }
+
+  if (messages.length === 0) {
+    messages.push(createFooterMessage('help', SCREEN_TEXTS.footerFallback, 0));
+  }
+
+  const PresenterComponent =
+    PRESENTERS[contentType] ?? PRESENTERS[ContentType.SINGLE_CHOICE];
+
+  const presenterProps: ScreenPresenterProps = {
+    title,
+    subtitle,
+    helpText,
+    hoveredOptionLabel: hoveredText,
+    textValue,
+    showTextPreview: contentType === ContentType.TEXT_INPUT && textValue.trim().length > 0,
+    reportData,
+    isLoading,
+    options,
+    industry,
+  };
 
   return (
     <div className="zoned-screen-container space-y-6 h-full flex flex-col">
@@ -65,7 +111,7 @@ export function ZonedScreen({
         contentType={contentType}
         disableAnimations={disableAnimations}
       >
-        {children}
+        <PresenterComponent {...presenterProps} />
       </MainZone>
       
       {messages.length > 0 && (
