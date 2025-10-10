@@ -10,7 +10,7 @@ AI‑powered conversion assessment with industry‑specific questions and an 8�
 - Testable endpoints and components
 
 ## Tech Stack
-- Framework: Next.js 14 (App Router)
+- Framework: Next.js 15 (App Router)
 - Language: TypeScript, React 18
 - Styling: Tailwind CSS
 - Testing: Jest + React Testing Library
@@ -39,7 +39,7 @@ cp .env.example .env.local
 npm run dev
 ```
 
-Open http://localhost:3000
+Open http://localhost:9002
 
 ## Scripts
 
@@ -71,9 +71,9 @@ Environment variables used by the app. Copy `.env.example` to `.env.local` for d
 | Variable | Required | Example | Notes |
 | --- | --- | --- | --- |
 | OPENAI_API_KEY | yes | sk-xxxx | Server‑side usage only. Do not expose publicly. |
-| NEXT_PUBLIC_APP_URL | yes | http://localhost:3000 | Public base URL used in embeds and links. |
+| NEXT_PUBLIC_APP_URL | yes | http://localhost:9002 | Public base URL used in embeds and links. |
 | NODE_ENV | no | development | Automatically set in most runtimes. |
-| PORT | no | 3000 | Dev server port. |
+| PORT | no | 9002 | Dev server port. |
 | LOG_LEVEL | no | info | debug \| info \| warn \| error |
 
 ### Environments
@@ -198,7 +198,7 @@ npm run dev -- --port 3001
 ### API checks
 ```bash
 # Test API endpoint
-curl -X POST http://localhost:3000/api/test \
+curl -X POST http://localhost:9002/api/test \
   -H "Content-Type: application/json" \
   -d '{"test": true}'
 
@@ -213,7 +213,7 @@ npm run build
 npm run analyze
 
 # Lighthouse
-npx lighthouse http://localhost:3000 --view
+npx lighthouse http://localhost:9002 --view
 ```
 
 ## Deployment, Operations, and Architecture

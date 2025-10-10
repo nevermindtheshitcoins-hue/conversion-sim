@@ -2,57 +2,101 @@
 
 ## Directory Organization
 
-### Core Application (`/src/app/`)
-- **`page.tsx`**: Main application entry point and primary user interface
-- **`layout.tsx`**: Root layout component with global styling and providers
-- **`globals.css`**: Global CSS styles and Tailwind base configuration
-- **`actions.ts`**: Server actions for form handling and data processing
+### `/src/app/` - Next.js Application Layer
+- **page.tsx** - Root page entry point
+- **layout.tsx** - Application layout wrapper
+- **main-app.tsx** - Main application component orchestrating the assessment flow
+- **globals.css** - Global styles and CSS variables
+- **crt-styles.css** - CRT visual effect styles (scanlines, glow, phosphor)
+- **api/** - API route handlers for server-side logic
 
-### API Routes (`/src/app/api/`)
-- **`ai-assessment/route.ts`**: Main AI assessment endpoint for generating reports
-- **`analytics/route.ts`**: Analytics tracking and user interaction logging
+### `/src/components/` - UI Components
+- **AppContainer.tsx** - Top-level container managing screen layout
+- **CRTShell.tsx** - CRT visual wrapper with header, screen, keypad, and footer zones
+- **ZonedScreen.tsx** - Screen zone manager handling content display and status
+- **ControlPanel.tsx** - Interactive control panel for user input (dial, buttons)
+- **QuestionsAndAnswers.tsx** - Question display and answer preview
+- **ReportDisplay.tsx** - Final assessment report rendering
+- **CRTScreen.tsx** - Core CRT screen component with visual effects
+- **Buttons.tsx** - Reusable button components
+- **zones/** - Zone-specific components for modular screen areas
 
-### AI Processing (`/src/ai/`)
-- **`flows/full-context-flow.ts`**: Core AI flow for processing assessments and generating insights
+### `/src/hooks/` - React Hooks
+- **useAssessmentFlow.ts** - Core assessment state management and flow control
+- **useProgressService.ts** - Progress tracking and step management
 
-### UI Components (`/src/components/`)
-- **`QuestionsAndAnswers.tsx`**: Interactive questionnaire component
-- **`ReportDisplay.tsx`**: Assessment results and report visualization
-- **`Buttons.tsx`**: Reusable button components
-- **`ErrorBoundary.tsx`**: Error handling and fallback UI
-- **`ui/error-boundary.tsx`**: Additional error boundary utilities
+### `/src/ai/` - AI Integration
+- **flows/** - AI assessment flow implementations
+  - **full-context-flow.ts** - Complete context-aware AI assessment logic
 
-### Utilities (`/src/lib/` & `/src/utils/`)
-- **`analytics.ts`**: Analytics tracking utilities
-- **`iframe-utils.ts`**: Iframe integration helpers
-- **`journey-tracker.ts`**: User journey and progress tracking
-- **`screen-config-new.ts`**: Screen configuration and flow management
-- **`validation.ts`**: Form and data validation utilities
+### `/src/lib/` - Utilities & Business Logic
+- **screen-config-new.ts** - Screen configuration and question definitions
+- **content-type-utils.ts** - Content type mapping and utilities
+- **journey-tracker.ts** - User journey tracking and analytics
+- **analytics.ts** - Analytics integration
+- **iframe-utils.ts** - Iframe embedding utilities
+- **security.ts** - Security headers and validation
+- **validation.ts** - Input validation utilities
 
-### Type Definitions (`/src/types/`)
-- **`report.ts`**: TypeScript interfaces for assessment reports and data structures
+### `/src/types/` - TypeScript Definitions
+- **app-state.ts** - Application state type definitions
+- **report.ts** - Report data structure types
+
+### `/src/styles/` - Additional Styles
+- **crt-effects.css** - Extended CRT visual effects
+
+### `/docs/` - Documentation
+- Architecture analysis and design documents
+- Implementation guides and phase documentation
+- Visual flow diagrams and zone architecture specs
+
+## Core Component Relationships
+
+### Assessment Flow Architecture
+```
+MainApp (main-app.tsx)
+  ├─> useAssessmentFlow (state management)
+  ├─> useProgressService (progress tracking)
+  └─> AppContainer
+       └─> CRTShell
+            ├─> ZonedScreen (header + content)
+            │    └─> QuestionsAndAnswers / ReportDisplay
+            ├─> ControlPanel (keypad zone)
+            └─> Footer (navigation buttons)
+```
+
+### State Management Pattern
+- **useAssessmentFlow** - Central hook managing assessment state, navigation, and user interactions
+- State flows unidirectionally from hook to components
+- Handlers passed down for user actions (selection, navigation, reset)
+- Derived state computed for navigation controls and UI status
+
+### Zone-Based Layout
+The application uses a zone-based architecture:
+- **Header Zone** - Progress and status indicators
+- **Screen Zone** - Main content display (questions, report)
+- **Keypad Zone** - Interactive control panel
+- **Footer Zone** - Navigation buttons (back, confirm, reset)
 
 ## Architectural Patterns
 
-### Next.js App Router Architecture
-- Server-side rendering with React Server Components
-- API routes for backend functionality
-- Client-side interactivity where needed
+### Component Composition
+- Small, focused components with single responsibilities
+- Container/Presentational pattern for state vs. display logic
+- Zone-based composition for flexible layout management
 
-### Component Architecture
-- Modular, reusable components
-- Clear separation between UI and business logic
-- Error boundaries for robust error handling
+### State Management
+- React hooks for local state and side effects
+- Centralized assessment flow logic in useAssessmentFlow
+- Derived state for computed values and navigation rules
 
-### Data Flow
-1. User interactions in questionnaire components
-2. Data validation through utility functions
-3. AI processing via dedicated flows
-4. Report generation and display
-5. Analytics tracking throughout the journey
+### Styling Approach
+- Tailwind CSS utility classes for component styling
+- Custom CSS for CRT effects and animations
+- CSS variables for theming and customization
+- Conditional classes based on state (loading, disabled, active)
 
-## Key Relationships
-- **Main App** → **Questionnaire** → **AI Processing** → **Report Display**
-- **Analytics** tracks all user interactions across components
-- **Error Boundaries** wrap critical components for reliability
-- **Iframe Utils** enable seamless website embedding
+### Type Safety
+- Strict TypeScript configuration
+- Comprehensive type definitions in `/src/types/`
+- Type inference for component props and state

@@ -4,9 +4,11 @@ import { useEffect } from 'react';
 import { AppContainer } from '../components/AppContainer';
 import { QuestionsAndAnswers } from '../components/QuestionsAndAnswers';
 import { ControlPanel } from '../components/ControlPanel';
+import { ZonedScreen } from '../components/ZonedScreen';
 import { RefreshCcw } from 'lucide-react';
 import { useAssessmentFlow } from '../hooks/useAssessmentFlow';
 import { useProgressService } from '../hooks/useProgressService';
+import { ContentType } from '../types/app-state';
 import CRTShell from '../components/CRTShell';
 
 export default function MainApp() {
@@ -28,57 +30,25 @@ export default function MainApp() {
     setCurrentStep(Math.min(state.currentScreenIndex + 1, totalSteps));
   }, [state.currentScreenIndex, totalSteps, setCurrentStep]);
 
-  const headerZone = (
-    <div>
-      <div className="mb-2 flex items-center justify-between text-xs uppercase tracking-[0.35em] text-zinc-500">
-        <span>Step {currentStep} of {totalSteps}</span>
-        <span>Progress</span>
-      </div>
-      <div className="h-2 rounded-full bg-zinc-900 overflow-hidden">
-        <div
-          className="h-full bg-gradient-to-r from-emerald-400 to-emerald-300 transition-all duration-300"
-          style={{ width: `${progressPercent}%` }}
-        />
-      </div>
-    </div>
-  );
+  // Determine status for header
+  const headerStatus = state.isReport 
+    ? 'complete' 
+    : state.isLoading 
+    ? 'loading' 
+    : 'active';
 
-  const screenZone = (
-    <div className="tv-screen h-full w-full bg-black border-8 border-zinc-800 rounded-lg p-8 flex flex-col">
-      {state.isTextInput ? (
-        <div className="flex-1 flex flex-col justify-center">
-          <h2 className="text-4xl font-bold uppercase text-yellow-300 mb-8 text-center">Describe Your Scenario</h2>
-          <textarea
-            value={state.textValue}
-            onChange={(e) => handlers.handleTextChange(e.target.value)}
-            placeholder="Enter your custom scenario..."
-            className="w-full h-64 rounded-lg border-2 border-zinc-700 bg-zinc-900 px-4 py-3 text-lg text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-emerald-500"
-            maxLength={500}
-            autoFocus
-          />
-          <div className="text-sm text-zinc-500 text-right mt-2">
-            {state.textValue.length}/500
-          </div>
-        </div>
-      ) : (
-        <QuestionsAndAnswers
-          title={state.currentTitle}
-          subtitle={state.currentSubtitle}
-          industry={state.industry || ''}
-          isLoading={state.isLoading}
-          reportData={state.reportData}
-          showTextPreview={false}
-          textPreview={state.textValue}
-          hoveredOptionLabel={hoveredOptionLabel}
-        />
-      )}
-      {state.error && (
-        <div className="mt-4 rounded-lg border-2 border-red-500 bg-red-900/20 px-4 py-3 text-center text-red-200" role="alert">
-          {state.error}
-        </div>
-      )}
-    </div>
-  );
+  const helpText = (() => {
+    if (state.isReport) {
+      return 'Use the green button to copy or confirm the report.';
+    }
+    if (state.isTextInput) {
+      return 'Type your response and press confirm when ready.';
+    }
+    if (state.isMultiSelect) {
+      return 'Select all relevant options, then press confirm.';
+    }
+    return 'Highlight an option with the dial and press confirm.';
+  })();
 
   const keypadZone = (
     <ControlPanel
@@ -125,18 +95,44 @@ export default function MainApp() {
     </div>
   );
 
+  const screen = (
+    <CRTShell
+      headerZone={<div />} // Empty for now - will be handled by ZonedScreen
+      screenZone={
+        <ZonedScreen
+          currentStep={currentStep}
+          totalSteps={totalSteps}
+          progressPercent={progressPercent}
+          status={headerStatus}
+          contentType={state.contentType || ContentType.SINGLE_CHOICE}
+          error={state.error}
+          hoveredText={hoveredOptionLabel}
+          helpText={helpText}
+          disableAnimations={!useFpsBudget}
+        >
+          {/* Keep existing QuestionsAndAnswers for now - will be replaced in Round 3 */}
+          <QuestionsAndAnswers
+            title={state.currentTitle}
+            subtitle={state.currentSubtitle}
+            industry={state.industry || ''}
+            isLoading={state.isLoading}
+            reportData={state.reportData}
+            showTextPreview={state.isTextInput && state.textValue.length > 0}
+            textPreview={state.textValue}
+            hoveredOptionLabel={hoveredOptionLabel}
+          />
+        </ZonedScreen>
+      }
+      keypadZone={keypadZone}
+      footerZone={footerZone}
+      disableMotion={!useFpsBudget}
+      scanlines={useFpsBudget}
+    />
+  );
+
   return (
     <AppContainer
-      screen={
-        <CRTShell
-          headerZone={headerZone}
-          screenZone={screenZone}
-          keypadZone={keypadZone}
-          footerZone={footerZone}
-          disableMotion={!useFpsBudget}
-          scanlines={useFpsBudget}
-        />
-      }
+      screen={screen}
     />
   );
 }

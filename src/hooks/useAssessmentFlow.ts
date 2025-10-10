@@ -1,8 +1,9 @@
 import { useState, useCallback, useEffect } from 'react';
-import { AppState, NavigationState, AIGeneratedQuestions } from '../types/app-state';
+import { AppState, NavigationState, AIGeneratedQuestions, ContentType } from '../types/app-state';
 import { ReportData } from '../types/report';
 import { JourneyTracker } from '../lib/journey-tracker';
 import { getScreenConfig } from '../lib/screen-config-new';
+import { getContentType } from '../lib/content-type-utils';
 
 const SCREEN_SEQUENCE = ['PRELIM_1', 'PRELIM_2', 'PRELIM_3', 'Q4', 'Q5', 'Q6', 'Q7', 'REPORT'];
 
@@ -48,7 +49,6 @@ export function useAssessmentFlow() {
     totalScreens: SCREEN_SEQUENCE.length,
     industry: null,
     customScenario: null,
-    progress: 0,
     isLoading: false,
     error: null,
     tempSelection: null,
@@ -65,6 +65,7 @@ export function useAssessmentFlow() {
     maxSelections: 1,
     aiGenerated: false,
     useFpsBudget: true,
+    contentType: ContentType.INDUSTRY_PICKER,
   });
 
   const [aiQuestions, setAiQuestions] = useState<AIGeneratedQuestions | null>(null);
@@ -114,29 +115,28 @@ export function useAssessmentFlow() {
 
   // Load AI-generated questions for dynamic screens
   useEffect(() => {
-    if (state.aiGenerated && !aiQuestions && state.industry) {
+    if (state.aiGenerated && !aiQuestions && state.industry && (
+      state.customScenario || state.industry !== 'Custom Strategic Initiative'
+    )) {
       loadAIQuestions();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.aiGenerated, state.industry, aiQuestions]);
+  }, [state.aiGenerated, state.industry, state.customScenario, aiQuestions]);
 
   const loadAIQuestions = async () => {
     setState(prev => ({ ...prev, isLoading: true, error: null }));
     
     try {
       const journey = journeyTracker.getFullContext(state.currentScreen);
-      const timestamp = Date.now().toString();
-      const nonce = Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
       
       const response = await fetch('/api/ai-assessment', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-timestamp': timestamp, 'x-nonce': nonce },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userJourney: journey,
           requestType: 'generate_questions',
           industry: state.industry,
           customScenario: state.customScenario,
-          // signature removed; server computes HMAC
         }),
       });
 
@@ -197,21 +197,15 @@ export function useAssessmentFlow() {
 
     try {
       const journey = journeyTracker.getFullContext('REPORT');
-      const signaturePayload = {
-        userJourney: journey,
-        requestType: 'generate_report',
-        industry: state.industry,
-        customScenario: state.customScenario,
-      };
-      const timestamp = Date.now().toString();
-      const nonce = Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
 
       const response = await fetch('/api/ai-assessment', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-timestamp': timestamp, 'x-nonce': nonce },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          ...signaturePayload,
-          // signature removed; server computes HMAC
+          userJourney: journey,
+          requestType: 'generate_report',
+          industry: state.industry,
+          customScenario: state.customScenario,
         }),
       });
 
@@ -231,7 +225,6 @@ export function useAssessmentFlow() {
           ...prev,
           currentScreen: 'REPORT',
           currentScreenIndex: SCREEN_SEQUENCE.length - 1,
-          progress: 100,
           reportData,
           isReport: true,
           isLoading: false,
@@ -281,7 +274,6 @@ export function useAssessmentFlow() {
     }
 
     const nextScreen = SCREEN_SEQUENCE[nextIndex];
-    const nextProgress = (nextIndex / (SCREEN_SEQUENCE.length - 1)) * 100;
     const trimmedValue = state.textValue.trim();
     const selectedOption =
       state.tempSelection != null ? state.currentOptions[state.tempSelection - 1] : null;
@@ -291,7 +283,6 @@ export function useAssessmentFlow() {
         ...prev,
         currentScreen: nextScreen,
         currentScreenIndex: nextIndex,
-        progress: nextProgress,
         tempSelection: null,
         multiSelections: [],
         textValue: '',
@@ -324,7 +315,6 @@ export function useAssessmentFlow() {
           ...prev,
           currentScreen: prevScreen,
           currentScreenIndex: prevIndex,
-          progress: (prevIndex / (SCREEN_SEQUENCE.length - 1)) * 100,
           tempSelection: null,
           multiSelections: [],
           textValue: '',
@@ -347,7 +337,6 @@ export function useAssessmentFlow() {
       totalScreens: SCREEN_SEQUENCE.length,
       industry: null,
       customScenario: null,
-      progress: 0,
       isLoading: false,
       error: null,
       tempSelection: null,
@@ -364,6 +353,7 @@ export function useAssessmentFlow() {
       maxSelections: 1,
       aiGenerated: false,
       useFpsBudget: !shouldDisableMotion(),
+      contentType: ContentType.INDUSTRY_PICKER,
     });
   }, [journeyTracker]);
 
@@ -391,8 +381,14 @@ export function useAssessmentFlow() {
     isLastScreen: state.currentScreen === 'REPORT',
   };
 
+  // NEW: Compute content type
+  const contentType = getContentType(state);
+
   return {
-    state,
+    state: {
+      ...state,
+      contentType, // Add computed content type
+    },
     navigationState,
     handlers: {
       handleSelection,

@@ -2,6 +2,15 @@
 
 import { ReportData } from './report';
 
+export enum ContentType {
+  INDUSTRY_PICKER = 'INDUSTRY_PICKER',
+  SINGLE_CHOICE = 'SINGLE_CHOICE', 
+  MULTI_CHOICE = 'MULTI_CHOICE',
+  TEXT_INPUT = 'TEXT_INPUT',
+  AI_LOADING = 'AI_LOADING',
+  REPORT_VIEW = 'REPORT_VIEW',
+}
+
 export interface AppState {
   // Current screen information
   currentScreen: string;
@@ -13,7 +22,6 @@ export interface AppState {
   customScenario: string | null;
   
   // UI state
-  progress: number;
   isLoading: boolean;
   error: string | null;
   useFpsBudget: boolean;
@@ -36,6 +44,7 @@ export interface AppState {
   isMultiSelect: boolean;
   maxSelections: number;
   aiGenerated: boolean;
+  contentType: ContentType;
 }
 
 export interface TextInputState {

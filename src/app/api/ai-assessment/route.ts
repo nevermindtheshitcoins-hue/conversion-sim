@@ -1,8 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-// 4-Zone CRT Architecture: API receives zone-based state from client
 import type { UserJourney } from '../../../lib/journey-tracker';
-import crypto from 'crypto';
-import { canonicalizePayload, hmacSign, isRecentTimestamp, consumeNonce, sanitizeForLog } from '../../../lib/security';
 
 type AIRequestType = 'generate_questions' | 'generate_report';
 
@@ -45,34 +42,6 @@ function validateRequestBody(body: unknown): body is RequestBody {
     typeof c.userJourney === 'object' && c.userJourney !== null &&
     industryOk && scenarioOk
   );
-}
-
-function verifyHmac(req: NextRequest, body: RequestBody): { ok: boolean; code?: string } {
-  const secret = process.env.AI_ASSESS_SECRET;
-  if (!secret || secret.length < 16) return { ok: false, code: 'secret_missing' };
-
-  const timestamp = req.headers.get('x-timestamp');
-  const nonce = req.headers.get('x-nonce');
-  const signature = req.headers.get('x-signature');
-  if (!timestamp || !nonce || !signature) return { ok: false, code: 'sig_headers_missing' };
-
-  const tsNum = Number(timestamp);
-  if (!Number.isFinite(tsNum) || !isRecentTimestamp(tsNum)) return { ok: false, code: 'stale_timestamp' };
-  if (!consumeNonce(`${nonce}:${timestamp}`)) return { ok: false, code: 'nonce_reuse' };
-
-  const canonical = canonicalizePayload({
-    requestType: body.requestType,
-    industry: body.industry ?? null,
-    customScenario: body.customScenario ?? null,
-    userJourney: body.userJourney,
-    timestamp: tsNum,
-    nonce,
-  });
-  const expected = hmacSign(secret, canonical);
-  const a = Buffer.from(signature);
-  const b = Buffer.from(expected);
-  if (a.length !== b.length) return { ok: false, code: 'sig_len' };
-  return { ok: crypto.timingSafeEqual(a, b) };
 }
 
 async function callOpenAI(prompt: string, requestType: AIRequestType): Promise<unknown> {
@@ -330,11 +299,6 @@ export async function POST(request: NextRequest) {
 
     const { userJourney, requestType, industry, customScenario } = body;
 
-    const sig = verifyHmac(request, { userJourney, requestType, industry, customScenario });
-    if (!sig.ok) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
     const prompt = buildPrompt(userJourney, requestType, industry, customScenario);
 
     let result: unknown;
@@ -353,7 +317,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(result);
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error);
-    console.error('AI Assessment API error:', sanitizeForLog(msg));
+    console.error('AI Assessment API error:', msg);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

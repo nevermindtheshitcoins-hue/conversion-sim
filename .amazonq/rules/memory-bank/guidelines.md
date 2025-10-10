@@ -2,103 +2,371 @@
 
 ## Code Quality Standards
 
-### TypeScript Usage
-- **Strict typing**: All functions use explicit TypeScript interfaces and types
-- **Interface definitions**: Complex objects use dedicated interfaces (e.g., `RequestBody`, `QuestionsAndAnswersProps`)
-- **Type guards**: Runtime validation with type predicates (`validateRequest(body: any): body is RequestBody`)
-- **Generic constraints**: Use `satisfies Config` pattern for configuration objects
-- **Optional chaining**: Consistent use of `?.` for safe property access
+### TypeScript Strict Mode
+- **Strict type checking enabled** - All code must pass TypeScript strict mode
+- **Explicit type annotations** for function parameters and return types
+- **Type guards** for runtime validation (e.g., `isValidRequestType`, `isFullContextOutput`)
+- **No implicit any** - All types must be explicitly defined or inferred
+- **Interface over type** for object shapes, especially for state and API contracts
 
-### Import Organization
-- **Server directives**: Use `'use server'` for server-side functions, `'use client'` for client components
-- **Grouped imports**: React imports first, then external libraries, then internal modules
-- **Type imports**: Use `import type` for type-only imports (`import type { UserJourney }`)
-- **Relative paths**: Consistent `../` relative imports for internal modules
+### Code Formatting Patterns
+- **Single quotes** for strings in TypeScript/JavaScript
+- **Semicolons required** at end of statements
+- **2-space indentation** throughout codebase
+- **Trailing commas** in multi-line objects and arrays
+- **Arrow functions** preferred over function expressions
+- **Const by default** - use `const` unless reassignment needed, then `let` (never `var`)
 
-### Error Handling Patterns
-- **Try-catch with fallbacks**: All async operations wrapped with fallback mechanisms
-- **Graceful degradation**: AI failures fall back to static content rather than breaking
-- **Error logging**: `console.error()` for debugging, user-friendly error messages for UI
-- **Validation first**: Input validation before processing (`validateRequest`, `validateSignature`)
-
-## Component Architecture
-
-### React Patterns
-- **Functional components**: All components use function declarations with TypeScript
-- **Custom hooks**: `React.useMemo`, `React.useCallback` for performance optimization
-- **State management**: `useState` with clear state initialization and type inference
-- **Effect patterns**: `useEffect` with dependency arrays and cleanup
-
-### Component Structure
-- **Props interfaces**: Every component has a dedicated props interface
-- **Conditional rendering**: Ternary operators for simple conditions, early returns for complex logic
-- **Event handlers**: Descriptive handler names (`handleConfirm`, `handleSelect`, `handleBack`)
-- **Accessibility**: ARIA attributes (`role`, `aria-live`, `aria-label`) throughout components
-
-### State Management
-- **Local state**: `useState` for component-specific state
-- **Derived state**: `React.useMemo` for computed values based on props/state
-- **State updates**: Functional updates for complex state (`setMultiSelections(prev => ...)`)
-- **State validation**: Runtime checks before state updates
-
-## API Design Patterns
-
-### Route Handlers
-- **Request validation**: Multi-step validation (structure, signature, business logic)
-- **Response consistency**: Standardized JSON responses with error handling
-- **Security**: Signature-based request validation for API endpoints
-- **Fallback providers**: Multiple AI providers with automatic failover
-
-### Data Flow
-- **Server actions**: Use Next.js server actions for form processing
-- **API abstraction**: Wrapper functions for external API calls (`callOpenAI`, `callGemini`)
-- **Environment variables**: Proper env var validation and fallbacks
-- **Base URL handling**: Dynamic base URL resolution for different environments
-
-## Styling Conventions
-
-### Tailwind CSS Usage
-- **Utility classes**: Extensive use of Tailwind utilities for styling
-- **Custom properties**: CSS variables for theme values (`hsl(var(--background))`)
-- **Responsive design**: Mobile-first responsive classes (`md:text-5xl`)
-- **Animation**: Custom keyframes and animations in config (`accordion-down`, `marquee`)
-
-### Design System
-- **Color palette**: Consistent color scheme with semantic naming
-- **Typography**: Tracking and font weight patterns (`tracking-widest`, `font-extrabold`)
-- **Spacing**: Consistent padding and margin patterns
-- **Gradients**: Subtle gradients for visual depth (`bg-gradient-to-b`)
-
-## Development Practices
+### Naming Conventions
+- **camelCase** for variables, functions, and methods
+- **PascalCase** for components, types, interfaces, and enums
+- **SCREAMING_SNAKE_CASE** for constants (e.g., `SCREEN_SEQUENCE`)
+- **Descriptive names** - prefer `handleSelection` over `handle` or `onSelect`
+- **Boolean prefixes** - use `is`, `has`, `can`, `should` (e.g., `isLoading`, `canConfirm`)
+- **Handler prefix** - event handlers use `handle` prefix (e.g., `handleConfirm`, `handleBack`)
 
 ### File Organization
-- **Feature-based structure**: Components, utilities, and types organized by feature
-- **Barrel exports**: Clean import paths through index files
-- **Configuration files**: TypeScript configs with strict settings
-- **Environment setup**: Multiple environment configurations (dev, staging, prod)
+- **One component per file** - component name matches filename
+- **Collocated types** - types defined in `/src/types/` directory
+- **Grouped imports** - React imports first, then third-party, then local
+- **Export patterns** - named exports for utilities, default export for components
 
-### Performance Optimization
-- **Memoization**: Strategic use of `React.useMemo` and `React.useCallback`
-- **Bundle optimization**: Next.js optimization with Turbopack for development
-- **Lazy loading**: Component-level code splitting where appropriate
-- **Asset optimization**: Proper image and static asset handling
+## Semantic Patterns
 
-### Testing Approach
-- **Error boundaries**: Comprehensive error boundary implementation
-- **Validation layers**: Multiple validation points (client, server, API)
-- **Fallback mechanisms**: Graceful degradation for all external dependencies
-- **Development tools**: Hot reload, type checking, and linting integration
+### State Management Pattern
+**Centralized hook-based state** (5/5 files):
+```typescript
+// Central state hook with derived values
+export function useAssessmentFlow() {
+  const [state, setState] = useState<AppState>({...});
+  
+  // Derived state computed from primary state
+  const navigationState: NavigationState = {
+    canGoBack: state.currentScreenIndex > 0,
+    canConfirm: /* computed from state */,
+  };
+  
+  return { state, navigationState, handlers };
+}
+```
 
-## Security Standards
+**Immutable state updates** (5/5 files):
+```typescript
+// Always spread previous state, never mutate
+setState(prev => ({ ...prev, isLoading: true, error: null }));
 
-### Data Protection
-- **Environment variables**: Secure API key management
-- **Request signing**: Cryptographic signatures for API requests
-- **Origin validation**: Iframe embedding security checks
-- **Input sanitization**: Comprehensive input validation and sanitization
+// Conditional state updates to prevent unnecessary renders
+setState(prev => (prev.useFpsBudget ? { ...prev, useFpsBudget: false } : prev));
+```
 
-### API Security
-- **Authentication**: Signature-based request authentication
-- **Rate limiting**: Implicit through provider-level controls
-- **Error disclosure**: Minimal error information in production responses
-- **CORS handling**: Proper cross-origin request handling for iframe embedding
+### Component Composition Pattern
+**Props destructuring with explicit types** (5/5 files):
+```typescript
+interface ComponentProps {
+  title: string;
+  onConfirm: () => void;
+  isLoading?: boolean;
+}
+
+export function Component({ title, onConfirm, isLoading = false }: ComponentProps) {
+  // Component logic
+}
+```
+
+**Zone-based architecture** (4/5 files):
+- Components organized into logical zones (header, screen, keypad, footer)
+- Each zone receives specific props and responsibilities
+- Parent component orchestrates zone composition
+
+### Error Handling Pattern
+**Defensive validation with type guards** (4/5 files):
+```typescript
+// Runtime type validation
+function validateRequestBody(body: unknown): body is RequestBody {
+  if (!body || typeof body !== 'object') return false;
+  const c = body as Partial<RequestBody>;
+  return (
+    isValidRequestType(c.requestType) &&
+    typeof c.userJourney === 'object' && c.userJourney !== null
+  );
+}
+```
+
+**Try-catch with fallbacks** (4/5 files):
+```typescript
+try {
+  result = await callOpenAI(prompt, requestType);
+} catch (openaiError) {
+  console.warn('OpenAI failed, trying Gemini:', openaiError);
+  try {
+    result = await callGemini(prompt, requestType);
+  } catch (geminiError) {
+    throw new Error('AI generation failed');
+  }
+}
+```
+
+**User-facing error messages** (5/5 files):
+```typescript
+setState(prev => ({
+  ...prev,
+  error: error instanceof Error ? error.message : 'Failed to load questions',
+}));
+```
+
+### API Integration Pattern
+**Validated request/response types** (3/5 files):
+```typescript
+interface RequestBody {
+  userJourney: UserJourney;
+  requestType: AIRequestType;
+  industry?: string;
+  customScenario?: string;
+}
+
+// Validate before processing
+if (!validateRequestBody(body)) {
+  return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
+}
+```
+
+**Environment-based configuration** (4/5 files):
+```typescript
+const apiKey = process.env.OPENAI_API_KEY;
+if (!apiKey || apiKey.length < 20) {
+  throw new Error('Invalid OpenAI API key');
+}
+
+const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+```
+
+### React Hooks Usage
+**useCallback for event handlers** (5/5 files):
+```typescript
+const handleConfirm = useCallback(async () => {
+  // Handler logic
+}, [state, journeyTracker, generateReport]);
+```
+
+**useEffect for side effects** (5/5 files):
+```typescript
+// Update screen config when dependencies change
+useEffect(() => {
+  const config = getScreenConfig(state.currentScreen, state.industry);
+  setState(prev => ({ ...prev, ...config }));
+}, [state.currentScreen, state.industry]);
+```
+
+**Dependency arrays** - Always include all dependencies or use ESLint disable with comment
+
+### Conditional Rendering Pattern
+**Ternary for simple conditions** (5/5 files):
+```typescript
+const headerStatus = state.isReport 
+  ? 'complete' 
+  : state.isLoading 
+  ? 'loading' 
+  : 'active';
+```
+
+**Early returns for complex conditions** (4/5 files):
+```typescript
+if (state.currentScreen === 'REPORT') {
+  setState(prev => ({ ...prev, isReport: true, /* ... */ }));
+  return;
+}
+```
+
+### Styling Patterns
+**Tailwind utility classes** (5/5 files):
+```typescript
+className="h-20 w-20 rounded-full bg-emerald-500 border-4 border-emerald-700"
+```
+
+**Conditional classes with template literals** (5/5 files):
+```typescript
+className={`h-20 w-20 rounded-full border-4 ${
+  navigationState.canConfirm || state.isReport
+    ? 'bg-emerald-500 border-emerald-700 hover:bg-emerald-400'
+    : 'bg-emerald-900 border-emerald-950 opacity-30'
+}`}
+```
+
+**CSS variables for theming** (3/5 files):
+```typescript
+colors: {
+  background: 'hsl(var(--background))',
+  primary: { DEFAULT: 'hsl(var(--primary))' },
+}
+```
+
+## Internal API Usage
+
+### State Updates
+```typescript
+// CORRECT: Immutable update with spread
+setState(prev => ({ ...prev, tempSelection: value, error: null }));
+
+// CORRECT: Conditional update to prevent re-renders
+setState(prev => (prev.useFpsBudget ? { ...prev, useFpsBudget: false } : prev));
+
+// INCORRECT: Direct mutation
+state.tempSelection = value; // Never do this
+```
+
+### Journey Tracking
+```typescript
+// Add response to journey tracker
+journeyTracker.addResponse(
+  state.currentScreen,
+  state.tempSelection,
+  selectedText
+);
+
+// Get full context for API calls
+const journey = journeyTracker.getFullContext(state.currentScreen);
+```
+
+### Content Type Mapping
+```typescript
+// Compute content type from state
+const contentType = getContentType(state);
+
+// Use in component rendering
+<ZonedScreen contentType={state.contentType} />
+```
+
+### Screen Configuration
+```typescript
+// Get screen config with optional industry context
+const config = getScreenConfig(state.currentScreen, state.industry || undefined);
+
+// Apply config to state
+setState(prev => ({
+  ...prev,
+  currentTitle: config.title,
+  currentOptions: config.options,
+  isTextInput: config.textInput || false,
+}));
+```
+
+## Code Idioms
+
+### Optional Chaining & Nullish Coalescing
+```typescript
+// Safe property access
+const content = data.choices?.[0]?.message?.content;
+
+// Default values
+const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
+```
+
+### Array Methods
+```typescript
+// Map with index
+const selectedTexts = state.multiSelections
+  .map(val => state.currentOptions[val - 1])
+  .join(', ');
+
+// Filter and reduce
+const priorChoices = userJourney.responses.reduce<Record<string, string>>(
+  (accumulator, response) => {
+    accumulator[response.screen] = response.buttonText;
+    return accumulator;
+  }, 
+  {}
+);
+```
+
+### Async/Await Error Handling
+```typescript
+// Always wrap async operations in try-catch
+try {
+  const response = await fetch(url, options);
+  if (!response.ok) {
+    throw new Error(`API error: ${response.status}`);
+  }
+  const data = await response.json();
+  return data;
+} catch (error) {
+  console.error('Operation failed:', error);
+  throw error;
+}
+```
+
+### Type Assertions
+```typescript
+// Use type guards instead of assertions when possible
+if (isFullContextOutput(data)) {
+  return data; // TypeScript knows the type
+}
+
+// Use 'as' for unavoidable casts
+const body = (await request.json()) as unknown;
+```
+
+## Annotations & Documentation
+
+### JSDoc Comments
+- **Minimal comments** - code should be self-documenting
+- **Complex logic only** - add comments for non-obvious business logic
+- **Type annotations** preferred over JSDoc for types
+
+### Interface Documentation
+```typescript
+// Document complex interfaces
+interface ReportGenerationRequest {
+  userJourney: UserJourney;
+  requestType: 'generate_questions' | 'generate_report';
+  industry?: string;
+  customScenario?: string;
+  signature: string;
+}
+```
+
+### Server Actions
+```typescript
+// Mark server-only code
+'use server';
+
+export async function generateCustomReport(
+  userJourney: UserJourney,
+  industry: string
+): Promise<FullContextOutput> {
+  // Server-side logic
+}
+```
+
+## Testing Patterns
+
+### Validation Functions
+- Pure functions for validation logic
+- Return boolean or validation result objects
+- Testable in isolation
+
+### Error Messages
+- User-facing messages are clear and actionable
+- Technical errors logged to console
+- Fallback messages for unknown errors
+
+## Performance Optimizations
+
+### Motion Preferences
+```typescript
+// Respect user preferences and device capabilities
+const shouldDisableMotion = () => {
+  const prefersReducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+  const isMobile = /Mobi|Android/i.test(window.navigator.userAgent);
+  return prefersReducedMotion || isMobile;
+};
+```
+
+### Conditional Rendering
+- Compute derived state once, reuse in render
+- Use early returns to avoid unnecessary computation
+- Memoize expensive calculations with useMemo (when needed)
+
+### API Optimization
+- Batch related state updates
+- Debounce user input for text fields
+- Cache AI responses when appropriate
