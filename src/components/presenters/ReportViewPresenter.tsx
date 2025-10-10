@@ -1,8 +1,9 @@
+import { memo } from 'react';
 import { Loader2 } from 'lucide-react';
 import { ReportDisplay } from '../ReportDisplay';
 import { ScreenPresenterProps } from './types';
 
-export function ReportViewPresenter({
+export const ReportViewPresenter = memo(function ReportViewPresenter({
   title,
   reportData,
   isLoading,
@@ -46,4 +47,4 @@ export function ReportViewPresenter({
       <ReportDisplay reportData={reportData} />
     </div>
   );
-}
+});

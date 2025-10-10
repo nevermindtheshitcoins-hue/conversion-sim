@@ -43,8 +43,8 @@ export function getContentTypeLabel(type: ContentType): string {
   return labels[type];
 }
 
-export function getZoneAnimations(contentType: ContentType, useFpsBudget: boolean) {
-  if (useFpsBudget) {
+export function getZoneAnimations(contentType: ContentType, motionEnabled: boolean) {
+  if (!motionEnabled) {
     return {
       header: { duration: 0, ease: 'linear' },
       main: { duration: 0, ease: 'linear' },

@@ -3,7 +3,7 @@ export interface UserResponse {
   buttonNumber: number;
   buttonText: string;
   timestamp: number;
-  textInput?: string;
+  textInput?: string | undefined;
 }
 
 export interface UserJourney {
@@ -32,7 +32,7 @@ export class JourneyTracker {
       buttonNumber,
       buttonText,
       timestamp: Date.now(),
-      textInput
+      textInput: textInput ?? undefined,
     });
   }
 
@@ -49,7 +49,9 @@ export class JourneyTracker {
   }
 
   getLastResponse(): UserResponse | null {
-    return this.responses[this.responses.length - 1] || null;
+    const lastIndex = this.responses.length - 1;
+    const response = this.responses[lastIndex];
+    return response ?? null;
   }
 
   clear() {
@@ -68,8 +70,10 @@ function generateSessionId(): string {
 
   if (globalCrypto?.getRandomValues) {
     const bytes = globalCrypto.getRandomValues(new Uint8Array(16));
-    bytes[6] = (bytes[6] & 0x0f) | 0x40;
-    bytes[8] = (bytes[8] & 0x3f) | 0x80;
+    const byte6 = bytes[6];
+    const byte8 = bytes[8];
+    if (byte6 !== undefined) bytes[6] = (byte6 & 0x0f) | 0x40;
+    if (byte8 !== undefined) bytes[8] = (byte8 & 0x3f) | 0x80;
     const hex = Array.from(bytes, b => b.toString(16).padStart(2, '0'));
     return (
       hex.slice(0, 4).join('') +

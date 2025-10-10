@@ -52,8 +52,9 @@ export function FooterZone({
   return (
     <div
       className={`flex justify-end p-2 ${disableAnimations ? '' : 'animate-in fade-in duration-200'}`}
-      role="status"
-      aria-live="polite"
+      role={activeMessage.type === 'error' ? 'alert' : 'status'}
+      aria-live={activeMessage.type === 'error' ? 'assertive' : 'polite'}
+      aria-atomic="true"
     >
       <div
         className={`inline-flex max-w-md items-center gap-2 rounded-lg border px-3 py-2 text-[0.7rem] font-semibold uppercase tracking-[0.25em] shadow-lg backdrop-blur-sm ${

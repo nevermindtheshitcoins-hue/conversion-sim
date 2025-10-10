@@ -1,6 +1,7 @@
+import { memo } from 'react';
 import { ScreenPresenterProps } from './types';
 
-export function SingleChoicePresenter({
+export const SingleChoicePresenter = memo(function SingleChoicePresenter({
   title,
   subtitle,
   helpText,
@@ -26,4 +27,4 @@ export function SingleChoicePresenter({
       )}
     </div>
   );
-}
+});

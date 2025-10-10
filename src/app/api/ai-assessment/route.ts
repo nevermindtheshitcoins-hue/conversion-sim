@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import type { UserJourney } from '../../../lib/journey-tracker';
+import { hmacSign, isRecentTimestamp, consumeNonce } from '../../../lib/security';
+import { checkRateLimit } from '../../../lib/rate-limiter';
 
 type AIRequestType = 'generate_questions' | 'generate_report';
 
@@ -44,7 +46,7 @@ function validateRequestBody(body: unknown): body is RequestBody {
   );
 }
 
-async function callOpenAI(prompt: string, requestType: AIRequestType): Promise<unknown> {
+async function callOpenAI(prompt: string, requestType: AIRequestType, signal: AbortSignal): Promise<unknown> {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey || apiKey.length < 20) {
     throw new Error('Invalid OpenAI API key');
@@ -54,6 +56,7 @@ async function callOpenAI(prompt: string, requestType: AIRequestType): Promise<u
 
   const allowedUrl = 'https://api.openai.com/v1/chat/completions';
   const response = await fetch(allowedUrl, {
+    signal,
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -90,7 +93,7 @@ async function callOpenAI(prompt: string, requestType: AIRequestType): Promise<u
   return JSON.parse(content);
 }
 
-async function callGemini(prompt: string, requestType: AIRequestType): Promise<unknown> {
+async function callGemini(prompt: string, requestType: AIRequestType, signal: AbortSignal): Promise<unknown> {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey || apiKey.length < 20) {
     throw new Error('Invalid Gemini API key');
@@ -99,6 +102,7 @@ async function callGemini(prompt: string, requestType: AIRequestType): Promise<u
   const allowedBaseUrl =
     'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
   const response = await fetch(`${allowedBaseUrl}?key=${apiKey}`, {
+    signal,
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -289,12 +293,50 @@ OUTPUT JSON SCHEMA:
 }`;
 }
 
+const REQUEST_TIMEOUT_MS = 25000;
+
 export async function POST(request: NextRequest) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+
   try {
+    const clientIp = request.headers.get('x-forwarded-for')?.split(',')[0] || 
+                     request.headers.get('x-real-ip') || 
+                     'unknown';
+
+    if (!checkRateLimit(clientIp)) {
+      return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 });
+    }
+
     const body = (await request.json()) as unknown;
 
     if (!validateRequestBody(body)) {
       return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
+    }
+
+    const signature = request.headers.get('x-signature');
+    const timestamp = request.headers.get('x-timestamp');
+    const nonce = request.headers.get('x-nonce');
+
+    if (signature && timestamp && nonce) {
+      const secret = process.env.HMAC_SECRET || '';
+      if (secret) {
+        const tsNum = parseInt(timestamp, 10);
+        if (!isRecentTimestamp(tsNum)) {
+          return NextResponse.json({ error: 'Request expired' }, { status: 401 });
+        }
+
+        if (!consumeNonce(nonce)) {
+          return NextResponse.json({ error: 'Invalid nonce' }, { status: 401 });
+        }
+
+        const message = `${timestamp}:${nonce}:${JSON.stringify(body)}`;
+        const expectedSig = hmacSign(secret, message);
+        
+        if (signature !== expectedSig) {
+          return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
+        }
+      }
     }
 
     const { userJourney, requestType, industry, customScenario } = body;
@@ -303,12 +345,18 @@ export async function POST(request: NextRequest) {
 
     let result: unknown;
     try {
-      result = await callOpenAI(prompt, requestType);
+      result = await callOpenAI(prompt, requestType, controller.signal);
     } catch (openaiError) {
+      if (controller.signal.aborted) {
+        throw new Error('Request timeout');
+      }
       console.warn('OpenAI failed, trying Gemini:', openaiError);
       try {
-        result = await callGemini(prompt, requestType);
+        result = await callGemini(prompt, requestType, controller.signal);
       } catch (geminiError) {
+        if (controller.signal.aborted) {
+          throw new Error('Request timeout');
+        }
         console.error('Both AI providers failed:', { openaiError, geminiError });
         throw new Error('AI generation failed');
       }
@@ -318,6 +366,13 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error);
     console.error('AI Assessment API error:', msg);
+    
+    if (msg === 'Request timeout') {
+      return NextResponse.json({ error: 'Request timeout' }, { status: 504 });
+    }
+    
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  } finally {
+    clearTimeout(timeoutId);
   }
 }

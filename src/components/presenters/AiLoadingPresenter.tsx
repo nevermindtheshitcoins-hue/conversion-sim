@@ -1,7 +1,8 @@
+import { memo } from 'react';
 import { Loader2 } from 'lucide-react';
 import { ScreenPresenterProps } from './types';
 
-export function AiLoadingPresenter({ title }: ScreenPresenterProps) {
+export const AiLoadingPresenter = memo(function AiLoadingPresenter({ title }: ScreenPresenterProps) {
   return (
     <div className="flex h-full flex-col items-center justify-center gap-6 text-center">
       <Loader2 className="h-12 w-12 animate-spin text-emerald-300" aria-hidden="true" />
@@ -15,4 +16,4 @@ export function AiLoadingPresenter({ title }: ScreenPresenterProps) {
       </div>
     </div>
   );
-}
+});

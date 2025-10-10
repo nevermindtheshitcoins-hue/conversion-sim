@@ -24,7 +24,7 @@ export interface AppState {
   // UI state
   isLoading: boolean;
   error: string | null;
-  useFpsBudget: boolean;
+  motionEnabled: boolean;
   
   // Selection state
   tempSelection: number | null;
@@ -38,7 +38,7 @@ export interface AppState {
   
   // Screen configuration state
   currentTitle: string;
-  currentSubtitle?: string;
+  currentSubtitle: string;
   currentOptions: string[];
   isTextInput: boolean;
   isMultiSelect: boolean;

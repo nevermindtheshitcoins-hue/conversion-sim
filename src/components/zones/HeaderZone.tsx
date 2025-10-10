@@ -3,7 +3,7 @@ import React from 'react';
 export interface HeaderZoneProps {
   currentStep: number;
   totalSteps: number;
-  progressPercent: number;
+  progress: number;
   status?: 'active' | 'loading' | 'complete';
   disableAnimations?: boolean;
 }
@@ -11,7 +11,7 @@ export interface HeaderZoneProps {
 export function HeaderZone({
   currentStep,
   totalSteps,
-  progressPercent,
+  progress,
   status = 'active',
   disableAnimations = false,
 }: HeaderZoneProps) {
@@ -19,8 +19,8 @@ export function HeaderZone({
   const safeCurrentStep = Number.isFinite(currentStep)
     ? Math.min(Math.max(Math.round(currentStep), 1), safeTotalSteps)
     : 1;
-  const safeProgress = Number.isFinite(progressPercent)
-    ? Math.min(Math.max(progressPercent, 0), 100)
+  const safeProgress = Number.isFinite(progress)
+    ? Math.min(Math.max(progress, 0), 100)
     : 0;
 
   const statusStyles: Record<

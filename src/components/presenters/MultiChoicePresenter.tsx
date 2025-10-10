@@ -1,6 +1,7 @@
+import { memo } from 'react';
 import { ScreenPresenterProps } from './types';
 
-export function MultiChoicePresenter({
+export const MultiChoicePresenter = memo(function MultiChoicePresenter({
   title,
   subtitle,
   helpText,
@@ -26,4 +27,4 @@ export function MultiChoicePresenter({
       )}
     </div>
   );
-}
+});

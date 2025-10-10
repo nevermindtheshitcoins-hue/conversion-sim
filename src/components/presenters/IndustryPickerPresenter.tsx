@@ -1,6 +1,7 @@
+import { memo } from 'react';
 import { ScreenPresenterProps } from './types';
 
-export function IndustryPickerPresenter({
+export const IndustryPickerPresenter = memo(function IndustryPickerPresenter({
   title,
   subtitle,
   helpText,
@@ -28,4 +29,4 @@ export function IndustryPickerPresenter({
       )}
     </div>
   );
-}
+});

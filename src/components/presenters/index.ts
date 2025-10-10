@@ -1,3 +1,4 @@
+import { ComponentType } from 'react';
 import { ContentType } from '../../types/app-state';
 import type { ScreenPresenterProps } from './types';
 import { AiLoadingPresenter } from './AiLoadingPresenter';
@@ -7,7 +8,7 @@ import { ReportViewPresenter } from './ReportViewPresenter';
 import { SingleChoicePresenter } from './SingleChoicePresenter';
 import { TextInputPresenter } from './TextInputPresenter';
 
-type PresenterComponent = (props: ScreenPresenterProps) => JSX.Element;
+type PresenterComponent = ComponentType<ScreenPresenterProps>;
 
 export const PRESENTERS: Record<ContentType, PresenterComponent> = {
   [ContentType.INDUSTRY_PICKER]: IndustryPickerPresenter,

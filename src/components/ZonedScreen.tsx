@@ -11,31 +11,32 @@ export interface ZonedScreenProps {
   // Header props
   currentStep: number;
   totalSteps: number;
-  progressPercent: number;
-  status?: 'active' | 'loading' | 'complete';
+  progress: number;
+  status?: 'active' | 'loading' | 'complete' | undefined;
   
   // Main props
   contentType: ContentType;
   title: string;
-  subtitle?: string;
+  subtitle?: string | undefined;
   industry: string | null;
   options: string[];
   isLoading: boolean;
   reportData: ReportData | null;
   textValue: string;
+  onTextChange: (value: string) => void;
   
   // Footer props
-  error?: string | null;
-  hoveredText?: string;
+  error?: string | null | undefined;
+  hoveredText?: string | undefined;
   
   // Global
-  disableAnimations?: boolean;
+  disableAnimations?: boolean | undefined;
 }
 
 export function ZonedScreen({
   currentStep,
   totalSteps,
-  progressPercent,
+  progress,
   status = 'active',
   contentType,
   title,
@@ -48,6 +49,7 @@ export function ZonedScreen({
   error,
   hoveredText,
   disableAnimations = false,
+  onTextChange,
 }: ZonedScreenProps) {
   const helpText = (() => {
     switch (contentType) {
@@ -86,11 +88,12 @@ export function ZonedScreen({
 
   const presenterProps: ScreenPresenterProps = {
     title,
-    subtitle,
+    subtitle: subtitle ?? undefined,
     helpText,
-    hoveredOptionLabel: hoveredText,
+    hoveredOptionLabel: hoveredText ?? undefined,
     textValue,
     showTextPreview: contentType === ContentType.TEXT_INPUT && textValue.trim().length > 0,
+    onTextChange,
     reportData,
     isLoading,
     options,
@@ -102,7 +105,7 @@ export function ZonedScreen({
       <HeaderZone
         currentStep={currentStep}
         totalSteps={totalSteps}
-        progressPercent={progressPercent}
+        progress={progress}
         status={status}
         disableAnimations={disableAnimations}
       />

@@ -1,3 +1,6 @@
+import { memo, useCallback, useRef } from 'react';
+import { CONTROL_PANEL_STYLES, FOCUS_STYLES } from '../lib/ui-constants';
+
 export type ControlPanelProps = {
   options: string[];
   tempSelection: number | null;
@@ -8,7 +11,7 @@ export type ControlPanelProps = {
   onHover: (value: number | null) => void;
 };
 
-export function ControlPanel({
+export const ControlPanel = memo(function ControlPanel({
   options,
   tempSelection,
   multiSelections,
@@ -17,6 +20,57 @@ export function ControlPanel({
   onSelect,
   onHover,
 }: ControlPanelProps) {
+  const buttonRefs = useRef<(HTMLButtonElement | null)[]>([]);
+
+  const handleKeyDown = useCallback((e: React.KeyboardEvent, value: number, disabled: boolean) => {
+    if (disabled) return;
+
+    const currentIndex = value - 1;
+    const enabledButtons = options.map((opt, i) => opt ? i : -1).filter(i => i >= 0);
+    const currentEnabledIndex = enabledButtons.indexOf(currentIndex);
+
+    switch (e.key) {
+      case 'ArrowDown':
+      case 'ArrowRight':
+        e.preventDefault();
+        if (currentEnabledIndex < enabledButtons.length - 1) {
+          const nextIndex = enabledButtons[currentEnabledIndex + 1];
+          if (nextIndex !== undefined) {
+            buttonRefs.current[nextIndex]?.focus();
+          }
+        }
+        break;
+      case 'ArrowUp':
+      case 'ArrowLeft':
+        e.preventDefault();
+        if (currentEnabledIndex > 0) {
+          const prevIndex = enabledButtons[currentEnabledIndex - 1];
+          if (prevIndex !== undefined) {
+            buttonRefs.current[prevIndex]?.focus();
+          }
+        }
+        break;
+      case 'Home':
+        e.preventDefault();
+        if (enabledButtons[0] !== undefined) {
+          buttonRefs.current[enabledButtons[0]]?.focus();
+        }
+        break;
+      case 'End':
+        e.preventDefault();
+        const lastIndex = enabledButtons[enabledButtons.length - 1];
+        if (lastIndex !== undefined) {
+          buttonRefs.current[lastIndex]?.focus();
+        }
+        break;
+      case 'Enter':
+      case ' ':
+        e.preventDefault();
+        onSelect(value, isMultiSelect);
+        break;
+    }
+  }, [options, isMultiSelect, onSelect]);
+
   const buttons = Array.from({ length: 7 }, (_, i) => {
     const value = i + 1;
     const label = options[i] || '';
@@ -28,17 +82,25 @@ export function ControlPanel({
     return (
       <button
         key={value}
+        ref={el => { buttonRefs.current[i] = el; }}
         type="button"
         onClick={() => !disabled && onSelect(value, isMultiSelect)}
+        onKeyDown={(e) => handleKeyDown(e, value, disabled)}
         onMouseEnter={() => !disabled && onHover(value)}
         onMouseLeave={() => onHover(null)}
+        onFocus={() => !disabled && onHover(value)}
+        onBlur={() => onHover(null)}
         disabled={disabled}
-        className={`w-full h-14 rounded-lg border-2 px-4 text-left transition-all overflow-hidden ${
+        tabIndex={disabled ? -1 : 0}
+        aria-label={label ? `Option ${value}: ${label}` : `Option ${value} unavailable`}
+        aria-pressed={active}
+        aria-disabled={disabled}
+        className={`${CONTROL_PANEL_STYLES.button.base} ${FOCUS_STYLES.ring} ${
           active
-            ? 'border-yellow-400 bg-yellow-900/40 text-yellow-100 shadow-lg'
+            ? CONTROL_PANEL_STYLES.button.active
             : disabled
-            ? 'border-zinc-800 bg-zinc-900/50 text-zinc-700 cursor-not-allowed'
-            : 'border-zinc-700 bg-zinc-800/80 text-zinc-200 hover:border-yellow-500/60 hover:bg-zinc-700'
+            ? CONTROL_PANEL_STYLES.button.disabled
+            : CONTROL_PANEL_STYLES.button.default
         }`}
       >
         <span className="text-sm font-medium truncate block">{label || '—'}</span>
@@ -46,5 +108,13 @@ export function ControlPanel({
     );
   });
 
-  return <div className="space-y-2">{buttons}</div>;
-}
+  return (
+    <div 
+      role="group" 
+      aria-label="Answer options"
+      className="space-y-2"
+    >
+      {buttons}
+    </div>
+  );
+});

@@ -4,6 +4,7 @@ import { ReportData } from '../types/report';
 import { JourneyTracker } from '../lib/journey-tracker';
 import { getScreenConfig } from '../lib/screen-config-new';
 import { getContentType } from '../lib/content-type-utils';
+import { secureApiCall } from '../lib/api-client';
 
 const SCREEN_SEQUENCE = ['PRELIM_1', 'PRELIM_2', 'PRELIM_3', 'Q4', 'Q5', 'Q6', 'Q7', 'REPORT'];
 
@@ -64,8 +65,8 @@ export function useAssessmentFlow() {
     isMultiSelect: false,
     maxSelections: 1,
     aiGenerated: false,
-    useFpsBudget: true,
-    contentType: ContentType.INDUSTRY_PICKER,
+    motionEnabled: true,
+    contentType: ContentType.SINGLE_CHOICE,
   });
 
   const [aiQuestions, setAiQuestions] = useState<AIGeneratedQuestions | null>(null);
@@ -73,7 +74,7 @@ export function useAssessmentFlow() {
   useEffect(() => {
     const disableMotion = shouldDisableMotion();
     if (disableMotion) {
-      setState(prev => (prev.useFpsBudget ? { ...prev, useFpsBudget: false } : prev));
+      setState(prev => (prev.motionEnabled ? { ...prev, motionEnabled: false } : prev));
     }
   }, []);
 
@@ -98,7 +99,7 @@ export function useAssessmentFlow() {
       setState(prev => ({
         ...prev,
         currentTitle: config.title,
-        currentSubtitle: config.subtitle,
+        currentSubtitle: config.subtitle ?? '',
         currentOptions: config.options,
         isTextInput: config.textInput || false,
         isMultiSelect: config.multiSelect || false,
@@ -129,15 +130,11 @@ export function useAssessmentFlow() {
     try {
       const journey = journeyTracker.getFullContext(state.currentScreen);
       
-      const response = await fetch('/api/ai-assessment', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userJourney: journey,
-          requestType: 'generate_questions',
-          industry: state.industry,
-          customScenario: state.customScenario,
-        }),
+      const response = await secureApiCall('/api/ai-assessment', {
+        userJourney: journey,
+        requestType: 'generate_questions',
+        industry: state.industry,
+        customScenario: state.customScenario,
       });
 
       if (!response.ok) {
@@ -154,11 +151,12 @@ export function useAssessmentFlow() {
       
       // Map AI questions to current screen
       const questionIndex = parseInt(state.currentScreen.replace('Q', '')) - 4;
-      if (data.questions && data.questions[questionIndex]) {
+      const question = data.questions[questionIndex];
+      if (question) {
         setState(prev => ({
           ...prev,
-          currentTitle: data.questions[questionIndex].text,
-          currentOptions: data.questions[questionIndex].options,
+          currentTitle: question.text,
+          currentOptions: question.options,
           isLoading: false,
         }));
       }
@@ -198,15 +196,11 @@ export function useAssessmentFlow() {
     try {
       const journey = journeyTracker.getFullContext('REPORT');
 
-      const response = await fetch('/api/ai-assessment', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userJourney: journey,
-          requestType: 'generate_report',
-          industry: state.industry,
-          customScenario: state.customScenario,
-        }),
+      const response = await secureApiCall('/api/ai-assessment', {
+        userJourney: journey,
+        requestType: 'generate_report',
+        industry: state.industry,
+        customScenario: state.customScenario,
       });
 
       if (!response.ok) {
@@ -259,11 +253,17 @@ export function useAssessmentFlow() {
     } else if (state.isMultiSelect) {
       const selectedTexts = state.multiSelections
         .map(val => state.currentOptions[val - 1])
+        .filter((text): text is string => text !== undefined)
         .join(', ');
-      journeyTracker.addResponse(state.currentScreen, state.multiSelections[0], selectedTexts);
+      const firstSelection = state.multiSelections[0];
+      if (firstSelection !== undefined) {
+        journeyTracker.addResponse(state.currentScreen, firstSelection, selectedTexts);
+      }
     } else if (state.tempSelection !== null) {
       const selectedText = state.currentOptions[state.tempSelection - 1];
-      journeyTracker.addResponse(state.currentScreen, state.tempSelection, selectedText);
+      if (selectedText !== undefined) {
+        journeyTracker.addResponse(state.currentScreen, state.tempSelection, selectedText);
+      }
     }
 
     const nextIndex = state.currentScreenIndex + 1;
@@ -274,9 +274,11 @@ export function useAssessmentFlow() {
     }
 
     const nextScreen = SCREEN_SEQUENCE[nextIndex];
+    if (!nextScreen) return;
+
     const trimmedValue = state.textValue.trim();
     const selectedOption =
-      state.tempSelection != null ? state.currentOptions[state.tempSelection - 1] : null;
+      state.tempSelection != null ? state.currentOptions[state.tempSelection - 1] ?? null : null;
 
     setState(prev => {
       const nextState: AppState = {
@@ -295,7 +297,7 @@ export function useAssessmentFlow() {
         nextState.customScenario = trimmedValue;
       }
 
-      if (!state.isTextInput && !state.isMultiSelect && selectedOption && prev.currentScreen === 'PRELIM_1') {
+      if (!state.isTextInput && !state.isMultiSelect && selectedOption !== null && prev.currentScreen === 'PRELIM_1') {
         nextState.industry = selectedOption;
       }
 
@@ -309,6 +311,7 @@ export function useAssessmentFlow() {
     if (state.currentScreenIndex > 0) {
       const prevIndex = state.currentScreenIndex - 1;
       const prevScreen = SCREEN_SEQUENCE[prevIndex];
+      if (!prevScreen) return;
       
       setState(prev => {
         const nextState: AppState = {
@@ -352,8 +355,8 @@ export function useAssessmentFlow() {
       isMultiSelect: false,
       maxSelections: 1,
       aiGenerated: false,
-      useFpsBudget: !shouldDisableMotion(),
-      contentType: ContentType.INDUSTRY_PICKER,
+      motionEnabled: !shouldDisableMotion(),
+      contentType: ContentType.SINGLE_CHOICE,
     });
   }, [journeyTracker]);
 
@@ -381,13 +384,12 @@ export function useAssessmentFlow() {
     isLastScreen: state.currentScreen === 'REPORT',
   };
 
-  // NEW: Compute content type
   const contentType = getContentType(state);
 
   return {
     state: {
       ...state,
-      contentType, // Add computed content type
+      contentType,
     },
     navigationState,
     handlers: {
