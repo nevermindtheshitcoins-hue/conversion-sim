@@ -1,0 +1,22 @@
+{
+    "folders": [
+        {
+            "name": "conversion-sim",
+            "path": "."
+        }
+    ],
+    "settings": {
+        "typescript.preferences.includePackageJsonAutoImports": "auto",
+        "editor.formatOnSave": true,
+        "files.associations": {
+            "*.css": "tailwindcss"
+        }
+    },
+    "extensions": {
+        "recommendations": [
+            "bradlc.vscode-tailwindcss",
+            "esbenp.prettier-vscode",
+            "ms-vscode.vscode-typescript-next"
+        ]
+    }
+}

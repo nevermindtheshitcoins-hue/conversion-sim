@@ -1,12 +1,20 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { AppState, NavigationState, AIGeneratedQuestions, ContentType } from '../types/app-state';
-import { ReportData } from '../types/report';
+import { ReportData, isReportData } from '../types/report';
 import { JourneyTracker } from '../lib/journey-tracker';
 import { getScreenConfig } from '../lib/screen-config-new';
 import { getContentType } from '../lib/content-type-utils';
 import { secureApiCall } from '../lib/api-client';
 
-const SCREEN_SEQUENCE = ['PRELIM_1', 'PRELIM_2', 'PRELIM_3', 'Q4', 'Q5', 'Q6', 'Q7', 'REPORT'];
+const SCREEN_SEQUENCE = ['PRELIM_1', 'PRELIM_2', 'PRELIM_3', 'AIQ1', 'AIQ2', 'AIQ3', 'AIQ4', 'AIQ5', 'REPORT'];
+
+function getAIQuestionIndex(screen: string): number {
+  if (screen.startsWith('AIQ')) {
+    const n = Number(screen.slice(3));
+    return Number.isFinite(n) ? n - 1 : -1; // AIQ1->0 .. AIQ5->4
+  }
+  return -1;
+}
 
 
 type TransitionValidation = {
@@ -70,6 +78,12 @@ export function useAssessmentFlow() {
   });
 
   const [aiQuestions, setAiQuestions] = useState<AIGeneratedQuestions | null>(null);
+  const aiQuestionsRef = useRef<AIGeneratedQuestions | null>(null);
+  const aiFetchInFlightRef = useRef(false);
+
+  useEffect(() => {
+    aiQuestionsRef.current = aiQuestions;
+  }, [aiQuestions]);
 
   useEffect(() => {
     const disableMotion = shouldDisableMotion();
@@ -78,7 +92,6 @@ export function useAssessmentFlow() {
     }
   }, []);
 
-  // Update screen configuration when screen changes
   useEffect(() => {
     try {
       if (state.currentScreen === 'REPORT') {
@@ -90,21 +103,39 @@ export function useAssessmentFlow() {
           currentOptions: [],
           isTextInput: false,
           isMultiSelect: false,
+          aiGenerated: false,
+        }));
+        return;
+      }
+
+      const isAIScreen = state.currentScreen.startsWith('AIQ');
+      if (isAIScreen) {
+        setState(prev => ({
+          ...prev,
+          isReport: false,
+          aiGenerated: true,
+          currentTitle: 'Loading question...',
+          currentSubtitle: '',
+          currentOptions: [],
+          isTextInput: false,
+          isMultiSelect: false,
+          error: null,
         }));
         return;
       }
 
       const config = getScreenConfig(state.currentScreen, state.industry || undefined);
-      
+
       setState(prev => ({
         ...prev,
+        isReport: false,
         currentTitle: config.title,
         currentSubtitle: config.subtitle ?? '',
         currentOptions: config.options,
-        isTextInput: config.textInput || false,
-        isMultiSelect: config.multiSelect || false,
-        maxSelections: config.maxSelections || 1,
-        aiGenerated: config.aiGenerated || false,
+        isTextInput: config.textInput ?? false,
+        isMultiSelect: config.multiSelect ?? false,
+        maxSelections: config.maxSelections ?? 7,
+        aiGenerated: Boolean(config.aiGenerated),
       }));
     } catch (error) {
       setState(prev => ({
@@ -114,60 +145,163 @@ export function useAssessmentFlow() {
     }
   }, [state.currentScreen, state.industry]);
 
-  // Load AI-generated questions for dynamic screens
   useEffect(() => {
-    if (state.aiGenerated && !aiQuestions && state.industry && (
-      state.customScenario || state.industry !== 'Custom Strategic Initiative'
-    )) {
-      loadAIQuestions();
+    if (!state.aiGenerated) {
+      return;
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.aiGenerated, state.industry, state.customScenario, aiQuestions]);
 
-  const loadAIQuestions = async () => {
-    setState(prev => ({ ...prev, isLoading: true, error: null }));
-    
-    try {
-      const journey = journeyTracker.getFullContext(state.currentScreen);
-      
-      const response = await secureApiCall('/api/ai-assessment', {
-        userJourney: journey,
-        requestType: 'generate_questions',
-        industry: state.industry,
-        customScenario: state.customScenario,
-      });
+    const questionIndex = getAIQuestionIndex(state.currentScreen);
+    if (questionIndex < 0) {
+      return;
+    }
 
-      if (!response.ok) {
-        const errorText = await response.text().catch(() => 'Unknown error');
-        throw new Error(`Failed to generate questions: ${errorText}`);
-      }
+    if (!aiQuestions) {
+      return;
+    }
 
-      const data: AIGeneratedQuestions = await response.json();
-      
-      if (!data || !data.questions || !Array.isArray(data.questions)) {
-        throw new Error('Invalid response format');
-      }
-      setAiQuestions(data);
-      
-      // Map AI questions to current screen
-      const questionIndex = parseInt(state.currentScreen.replace('Q', '')) - 4;
-      const question = data.questions[questionIndex];
-      if (question) {
-        setState(prev => ({
-          ...prev,
-          currentTitle: question.text,
-          currentOptions: question.options,
-          isLoading: false,
-        }));
-      }
-    } catch (error) {
+    const question = aiQuestions.questions[questionIndex];
+    if (!question) {
       setState(prev => ({
         ...prev,
-        isLoading: false,
-        error: error instanceof Error ? error.message : 'Failed to load questions',
+        error: prev.error ?? 'Unable to load AI question for this step',
       }));
+      return;
     }
-  };
+
+    setState(prev => ({
+      ...prev,
+      currentTitle: question.text,
+      currentSubtitle: '',
+      currentOptions: Array.isArray(question.options) ? question.options : [],
+      isTextInput: question.type === 'text_input',
+      isMultiSelect: question.type === 'multi_choice',
+      maxSelections:
+        question.type === 'multi_choice' && Number.isFinite(question.maxSelections)
+          ? (question.maxSelections as number)
+          : 7,
+      error: null,
+    }));
+  }, [state.aiGenerated, state.currentScreen, aiQuestions]);
+
+  const loadAIQuestions = useCallback(
+    async (screen: string, industry: string | null, customScenario: string | null) => {
+      if (aiFetchInFlightRef.current) {
+        return;
+      }
+
+      aiFetchInFlightRef.current = true;
+
+      setState(prev => ({
+        ...prev,
+        isLoading: true,
+        error: null,
+        currentTitle: 'Generating questions...',
+        currentSubtitle: '',
+        currentOptions: [],
+        isTextInput: false,
+        isMultiSelect: false,
+        maxSelections: 1,
+      }));
+
+      try {
+        const trimmedIndustry = typeof industry === 'string' ? industry.trim() : '';
+        const trimmedScenario = typeof customScenario === 'string' ? customScenario.trim() : '';
+
+        const journey = journeyTracker.getFullContext(screen);
+
+        const requestBody: Record<string, unknown> = {
+          userJourney: journey,
+          requestType: 'generate_questions',
+        };
+
+        if (trimmedIndustry) {
+          requestBody.industry = trimmedIndustry;
+        }
+
+        if (trimmedScenario) {
+          requestBody.customScenario = trimmedScenario;
+        }
+
+        const response = await secureApiCall('/api/ai-assessment', requestBody);
+
+        if (!response.ok) {
+          const errorText = await response.text().catch(() => 'Unknown error');
+          throw new Error(`Failed to generate questions: ${errorText}`);
+        }
+
+        const data: AIGeneratedQuestions = await response.json();
+
+        if (!data || !Array.isArray(data.questions)) {
+          throw new Error('Invalid response format');
+        }
+
+        setAiQuestions(data);
+        setState(prev => ({
+          ...prev,
+          isLoading: false,
+          error: null,
+        }));
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Failed to load questions';
+        console.error('❌ loadAIQuestions failed:', error);
+
+        // Extract request ID if available in error message
+        const requestIdMatch = message.match(/\[req_[\w_]+\]/);
+        const requestId = requestIdMatch ? requestIdMatch[0] : '';
+        
+        // Format error message with context
+        const errorDisplay = requestId 
+          ? `${message}\n${requestId}`
+          : message;
+
+        setState(prev => ({
+          ...prev,
+          isLoading: false,
+          error: errorDisplay,
+          currentTitle: 'Unable to generate questions',
+          currentSubtitle: 'Please try again.',
+          currentOptions: [],
+          isTextInput: false,
+          isMultiSelect: false,
+          maxSelections: 1,
+        }));
+      } finally {
+        aiFetchInFlightRef.current = false;
+      }
+    },
+    [journeyTracker]
+  );
+
+  useEffect(() => {
+    // Trigger on any AI screen (AIQ1-AIQ5), not just AIQ1
+    const isAIScreen = state.currentScreen.startsWith('AIQ');
+    if (!isAIScreen) {
+      return;
+    }
+
+    // Don't re-fetch if already loaded
+    if (aiFetchInFlightRef.current) {
+      return;
+    }
+
+    if (aiQuestionsRef.current) {
+      return;
+    }
+
+    const trimmedIndustry = typeof state.industry === 'string' ? state.industry.trim() : '';
+    if (!trimmedIndustry) {
+      return;
+    }
+
+    if (
+      trimmedIndustry === 'Custom Strategic Initiative' &&
+      !(typeof state.customScenario === 'string' && state.customScenario.trim().length > 0)
+    ) {
+      return;
+    }
+
+    void loadAIQuestions(state.currentScreen, trimmedIndustry, state.customScenario ?? null);
+  }, [state.currentScreen, state.industry, state.customScenario, loadAIQuestions]);
 
   const handleSelection = useCallback((value: number, isMulti: boolean) => {
     if (isMulti) {
@@ -186,6 +320,32 @@ export function useAssessmentFlow() {
     setState(prev => ({ ...prev, textValue: value, error: null }));
   }, []);
 
+  const handleRetryAiQuestions = useCallback(() => {
+    if (!state.aiGenerated) {
+      return;
+    }
+
+    const trimmedIndustry = typeof state.industry === 'string' ? state.industry.trim() : '';
+    if (!trimmedIndustry) {
+      return;
+    }
+
+    if (
+      trimmedIndustry === 'Custom Strategic Initiative' &&
+      !(typeof state.customScenario === 'string' && state.customScenario.trim().length > 0)
+    ) {
+      return;
+    }
+
+    if (aiFetchInFlightRef.current) {
+      return;
+    }
+
+    setAiQuestions(null);
+    aiQuestionsRef.current = null;
+    void loadAIQuestions(state.currentScreen, trimmedIndustry, state.customScenario ?? null);
+  }, [state.aiGenerated, state.currentScreen, state.industry, state.customScenario, loadAIQuestions]);
+
   const handleHover = useCallback((value: number | null) => {
     setState(prev => ({ ...prev, hoveredOption: value }));
   }, []);
@@ -196,23 +356,36 @@ export function useAssessmentFlow() {
     try {
       const journey = journeyTracker.getFullContext('REPORT');
 
-      const response = await secureApiCall('/api/ai-assessment', {
-        userJourney: journey,
-        requestType: 'generate_report',
-        industry: state.industry,
-        customScenario: state.customScenario,
-      });
+        const trimmedIndustry = typeof state.industry === 'string' ? state.industry.trim() : '';
+        const trimmedScenario = typeof state.customScenario === 'string' ? state.customScenario.trim() : '';
+
+        const requestBody: Record<string, unknown> = {
+          userJourney: journey,
+          requestType: 'generate_report',
+        };
+
+        if (trimmedIndustry) {
+          requestBody.industry = trimmedIndustry;
+        }
+
+        if (trimmedScenario) {
+          requestBody.customScenario = trimmedScenario;
+        }
+
+        const response = await secureApiCall('/api/ai-assessment', requestBody);
 
       if (!response.ok) {
         const errorText = await response.text().catch(() => 'Unknown error');
         throw new Error(`Failed to generate report: ${errorText}`);
       }
 
-      const reportData: ReportData = await response.json();
+      const rawReport: unknown = await response.json();
 
-      if (!reportData || typeof reportData !== 'object') {
+      if (!isReportData(rawReport)) {
         throw new Error('Invalid report format');
       }
+
+      const reportData: ReportData = rawReport;
 
       setState(prev => {
         const nextState: AppState = {
@@ -231,10 +404,22 @@ export function useAssessmentFlow() {
         return nextState;
       });
     } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to generate report';
+      console.error('❌ generateReport failed:', error);
+
+      // Extract request ID if available in error message
+      const requestIdMatch = message.match(/\[req_[\w_]+\]/);
+      const requestId = requestIdMatch ? requestIdMatch[0] : '';
+      
+      // Format error message with context
+      const errorDisplay = requestId 
+        ? `${message}\n${requestId}`
+        : message;
+
       setState(prev => ({
         ...prev,
         isLoading: false,
-        error: error instanceof Error ? error.message : 'Failed to generate report',
+        error: errorDisplay,
       }));
     }
   }, [journeyTracker, state.customScenario, state.industry]);
@@ -299,6 +484,7 @@ export function useAssessmentFlow() {
 
       if (!state.isTextInput && !state.isMultiSelect && selectedOption !== null && prev.currentScreen === 'PRELIM_1') {
         nextState.industry = selectedOption;
+        nextState.totalScreens = SCREEN_SEQUENCE.length + (selectedOption === 'Custom Strategic Initiative' ? 1 : 0);
       }
 
       return nextState;
@@ -334,6 +520,8 @@ export function useAssessmentFlow() {
   const handleReset = useCallback(() => {
     journeyTracker.clear();
     setAiQuestions(null);
+    aiQuestionsRef.current = null;
+    aiFetchInFlightRef.current = false;
     setState({
       currentScreen: 'PRELIM_1',
       currentScreenIndex: 0,
@@ -367,7 +555,8 @@ export function useAssessmentFlow() {
         await navigator.clipboard.writeText(reportText);
         setState(prev => ({ ...prev, error: null }));
         // Could add a success message state if needed
-      } catch (error) {
+      } catch (copyError) {
+        console.error('Clipboard copy failed', copyError);
         setState(prev => ({ ...prev, error: 'Failed to copy report' }));
       }
     }
@@ -400,6 +589,7 @@ export function useAssessmentFlow() {
       handleReset,
       handleCopyReport,
       handleHover,
+      handleRetryAiQuestions,
     },
   };
 }

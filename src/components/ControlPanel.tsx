@@ -103,7 +103,36 @@ export const ControlPanel = memo(function ControlPanel({
             : CONTROL_PANEL_STYLES.button.default
         }`}
       >
-        <span className="text-sm font-medium truncate block">{label || '—'}</span>
+        {/* LED screen background */}
+        <div className={`${CONTROL_PANEL_STYLES.ledScreen.base} ${
+          active
+            ? CONTROL_PANEL_STYLES.ledScreen.active
+            : disabled
+            ? CONTROL_PANEL_STYLES.ledScreen.disabled
+            : CONTROL_PANEL_STYLES.ledScreen.default
+        }`} />
+        
+        {/* LED text display with scrolling */}
+        <div className="absolute inset-x-1 inset-y-1 flex items-center overflow-hidden">
+          <span className={`${CONTROL_PANEL_STYLES.ledText.base} ${
+            active
+              ? CONTROL_PANEL_STYLES.ledText.active
+              : disabled
+              ? CONTROL_PANEL_STYLES.ledText.disabled
+              : CONTROL_PANEL_STYLES.ledText.default
+          } group-hover:animate-[scroll_3s_linear_infinite]`}>
+            {label || '—'}
+          </span>
+        </div>
+        
+        {/* Subtle scan lines for LED effect */}
+        {!disabled && (
+          <div className="absolute inset-1 rounded-md opacity-20 pointer-events-none">
+            <div className="absolute inset-x-0 top-1/4 h-px bg-gradient-to-r from-transparent via-emerald-400/30 to-transparent" />
+            <div className="absolute inset-x-0 top-2/4 h-px bg-gradient-to-r from-transparent via-emerald-400/20 to-transparent" />
+            <div className="absolute inset-x-0 top-3/4 h-px bg-gradient-to-r from-transparent via-emerald-400/30 to-transparent" />
+          </div>
+        )}
       </button>
     );
   });

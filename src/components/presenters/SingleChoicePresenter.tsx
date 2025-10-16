@@ -5,26 +5,18 @@ export const SingleChoicePresenter = memo(function SingleChoicePresenter({
   title,
   subtitle,
   helpText,
-  hoveredOptionLabel,
 }: ScreenPresenterProps) {
   return (
-    <div className="flex h-full flex-col justify-center space-y-6">
-      <header className="space-y-2">
-        <h2 className="text-4xl font-bold uppercase tracking-tight text-emerald-200">
+    <div className="flex h-full flex-col items-center text-center space-y-6" style={{paddingTop: '20%'}}>
+      <header className="space-y-4">
+        <h2 className="text-4xl font-bold uppercase tracking-tight text-yellow-300 md:text-5xl">
           {title}
         </h2>
-        {subtitle && <p className="text-base text-zinc-400">{subtitle}</p>}
+        {subtitle && <p className="text-lg text-zinc-300 max-w-2xl mx-auto md:text-xl">{subtitle}</p>}
       </header>
-
-      <p className="text-xs uppercase tracking-[0.4em] text-zinc-500">
+      <p className="text-sm uppercase tracking-[0.35em] text-emerald-400 animate-slow-blink md:text-base">
         {helpText}
       </p>
-
-      {hoveredOptionLabel && (
-        <aside className="rounded-lg border border-emerald-500/40 bg-emerald-900/40 px-4 py-3 text-xs uppercase tracking-[0.3em] text-emerald-100 shadow-inner">
-          {hoveredOptionLabel}
-        </aside>
-      )}
     </div>
   );
 });

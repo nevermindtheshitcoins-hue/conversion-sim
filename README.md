@@ -216,14 +216,37 @@ npm run analyze
 npx lighthouse http://localhost:9002 --view
 ```
 
-## Deployment, Operations, and Architecture
+## Documentation
 
-- Deployment guide: [docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md)
-- Operations & runbooks: [docs/OPERATIONS.md](./docs/OPERATIONS.md)
-- Architecture notes: [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md)
-- Security policy: [docs/SECURITY.md](./docs/SECURITY.md)
-- Contributing: [docs/CONTRIBUTING.md](./docs/CONTRIBUTING.md)
-- Changelog: [CHANGELOG.md](./CHANGELOG.md)
+### 📚 Essential Documentation
+- **[Quick Reference](./docs/QUICK_REFERENCE.md)** - Fast lookup for all key information
+- **[Project History](./docs/PROJECT_HISTORY.md)** - Complete changelog and updates
+- **[Architecture Design](./docs/ZONED_ARCHITECTURE_DESIGN.md)** - Complete technical specification
+
+### 🔧 Implementation & Development
+- **[Implementation Guide](./docs/ROUND_2_IMPLEMENTATION_GUIDE.md)** - Step-by-step coding instructions
+- **[Content Type Mapping](./docs/CONTENT_TYPE_MAPPING.md)** - Screen-by-screen breakdown
+- **[Visual Flow Diagram](./docs/VISUAL_FLOW_DIAGRAM.md)** - Architecture diagrams and flows
+
+### 🔒 Security & Operations
+- **[Security Implementation](./docs/SECURITY_IMPLEMENTATION.md)** - Security measures and configuration
+- **[Security Quickstart](./docs/SECURITY_QUICKSTART.md)** - Fast security setup guide
+
+### ♿ Accessibility & Polish
+- **[Keyboard Shortcuts](./docs/KEYBOARD_SHORTCUTS.md)** - User-facing shortcuts guide
+- **[UX Polish Implementation](./docs/UX_POLISH_IMPLEMENTATION.md)** - Accessibility details
+
+### 📝 Development Guides
+- **[TypeScript Strictness](./docs/TYPESCRIPT_STRICTNESS.md)** - TypeScript best practices
+- **[Performance Optimization](./docs/PERFORMANCE_OPTIMIZATION.md)** - Performance tuning guide
+
+### 📦 Archive
+- **[ze_deletables/](./docs/ze_deletables/)** - Outdated and redundant documentation
+
+### Legacy References
+- Deployment: See Quick Reference and Security Implementation
+- Operations: See Security Implementation and Performance Optimization
+- Contributing: See Project History for current patterns
 - License: [LICENSE](./LICENSE)
 
 ## License

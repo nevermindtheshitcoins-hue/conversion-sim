@@ -7,8 +7,16 @@ export function getContentType(state: AppState): ContentType {
     return ContentType.REPORT_VIEW;
   }
   
-  // Loading state
-  if (state.isLoading && state.aiGenerated) {
+  // Error display takes precedence over loading
+  if (state.error && !state.isLoading) {
+    return ContentType.ERROR_DISPLAY;
+  }
+  
+  // AI loading state
+  if (
+    state.aiGenerated &&
+    (state.isLoading || (state.error && state.currentOptions.length === 0 && !state.isTextInput))
+  ) {
     return ContentType.AI_LOADING;
   }
   
@@ -39,6 +47,7 @@ export function getContentTypeLabel(type: ContentType): string {
     [ContentType.TEXT_INPUT]: 'Text Input',
     [ContentType.AI_LOADING]: 'Generating Questions',
     [ContentType.REPORT_VIEW]: 'Assessment Report',
+    [ContentType.ERROR_DISPLAY]: 'Error',
   };
   return labels[type];
 }
@@ -82,6 +91,11 @@ export function getZoneAnimations(contentType: ContentType, motionEnabled: boole
       header: { duration: 400, ease: 'easeInOut' },
       main: { duration: 600, ease: 'easeInOut' },
       footer: { duration: 300, ease: 'easeOut' },
+    },
+    [ContentType.ERROR_DISPLAY]: {
+      header: { duration: 200, ease: 'easeOut' },
+      main: { duration: 300, ease: 'easeOut' },
+      footer: { duration: 150, ease: 'easeIn' },
     },
   };
 

@@ -283,7 +283,7 @@ export function MainZone({
 
   return (
     <div 
-      className={`main-zone-content ${contentStyles[contentType]} ${
+      className={`main-zone ${contentStyles[contentType]} ${
         disableAnimations ? '' : 'transition-all duration-300 ease-in-out'
       }`}
       data-content-type={contentType}
@@ -396,7 +396,7 @@ export function ZonedScreen({
   }
 
   return (
-    <div className="zoned-screen-container space-y-6">
+    <div className="zoned-screen space-y-6">
       <HeaderZone
         currentStep={currentStep}
         totalSteps={totalSteps}

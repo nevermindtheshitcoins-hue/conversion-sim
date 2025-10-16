@@ -2,6 +2,7 @@ import { ComponentType } from 'react';
 import { ContentType } from '../../types/app-state';
 import type { ScreenPresenterProps } from './types';
 import { AiLoadingPresenter } from './AiLoadingPresenter';
+import { ErrorDisplayPresenter } from './ErrorDisplayPresenter';
 import { IndustryPickerPresenter } from './IndustryPickerPresenter';
 import { MultiChoicePresenter } from './MultiChoicePresenter';
 import { ReportViewPresenter } from './ReportViewPresenter';
@@ -17,6 +18,7 @@ export const PRESENTERS: Record<ContentType, PresenterComponent> = {
   [ContentType.TEXT_INPUT]: TextInputPresenter,
   [ContentType.AI_LOADING]: AiLoadingPresenter,
   [ContentType.REPORT_VIEW]: ReportViewPresenter,
+  [ContentType.ERROR_DISPLAY]: ErrorDisplayPresenter,
 };
 
 export type { ScreenPresenterProps };

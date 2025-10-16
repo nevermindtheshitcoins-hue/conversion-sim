@@ -1,4 +1,4 @@
-.crt-screen {
+.crt-effects {
   position: relative;
   background: #0a0a0a;
   border: 2px solid #444;
@@ -6,7 +6,7 @@
   border-radius: 4px;
 }
 
-.scanlines {
+.crt-effects__scanlines {
   position: absolute;
   top: 0;
   left: 0;
@@ -20,7 +20,7 @@
   pointer-events: none;
 }
 
-.glow {
+.crt-effects__glow {
   position: absolute;
   top: 0;
   left: 0;

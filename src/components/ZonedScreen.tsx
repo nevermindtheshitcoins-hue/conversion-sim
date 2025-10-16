@@ -1,19 +1,11 @@
 import React from 'react';
-import { HeaderZone } from './zones/HeaderZone';
 import { MainZone } from './zones/MainZone';
-import { FooterZone, createFooterMessage, type FooterMessage } from './zones/FooterZone';
 import { ContentType } from '../types/app-state';
 import type { ReportData } from '../types/report';
 import { SCREEN_TEXTS } from '../config/screen-text';
 import { PRESENTERS, type ScreenPresenterProps } from './presenters';
 
 export interface ZonedScreenProps {
-  // Header props
-  currentStep: number;
-  totalSteps: number;
-  progress: number;
-  status?: 'active' | 'loading' | 'complete' | undefined;
-  
   // Main props
   contentType: ContentType;
   title: string;
@@ -24,20 +16,13 @@ export interface ZonedScreenProps {
   reportData: ReportData | null;
   textValue: string;
   onTextChange: (value: string) => void;
-  
-  // Footer props
-  error?: string | null | undefined;
-  hoveredText?: string | undefined;
-  
-  // Global
+  error: string | null;
+  aiGenerated: boolean;
+  onRetryAiQuestions?: () => void;
   disableAnimations?: boolean | undefined;
 }
 
 export function ZonedScreen({
-  currentStep,
-  totalSteps,
-  progress,
-  status = 'active',
   contentType,
   title,
   subtitle,
@@ -47,7 +32,8 @@ export function ZonedScreen({
   reportData,
   textValue,
   error,
-  hoveredText,
+  aiGenerated,
+  onRetryAiQuestions,
   disableAnimations = false,
   onTextChange,
 }: ZonedScreenProps) {
@@ -64,25 +50,6 @@ export function ZonedScreen({
     }
   })();
 
-  // Build footer messages with priority system
-  const messages: FooterMessage[] = [];
-  
-  if (error) {
-    messages.push(createFooterMessage('error', error, 100));
-  }
-  
-  if (hoveredText && !error) {
-    messages.push(createFooterMessage('hover', hoveredText, 30));
-  }
-  
-  if (!error && !hoveredText && helpText) {
-    messages.push(createFooterMessage('help', helpText, 10));
-  }
-
-  if (messages.length === 0) {
-    messages.push(createFooterMessage('help', SCREEN_TEXTS.footerFallback, 0));
-  }
-
   const PresenterComponent =
     PRESENTERS[contentType] ?? PRESENTERS[ContentType.SINGLE_CHOICE];
 
@@ -90,7 +57,6 @@ export function ZonedScreen({
     title,
     subtitle: subtitle ?? undefined,
     helpText,
-    hoveredOptionLabel: hoveredText ?? undefined,
     textValue,
     showTextPreview: contentType === ContentType.TEXT_INPUT && textValue.trim().length > 0,
     onTextChange,
@@ -98,31 +64,18 @@ export function ZonedScreen({
     isLoading,
     options,
     industry,
+    error,
+    onRetry: aiGenerated ? onRetryAiQuestions : undefined,
   };
 
   return (
-    <div className="zoned-screen-container space-y-6 h-full flex flex-col">
-      <HeaderZone
-        currentStep={currentStep}
-        totalSteps={totalSteps}
-        progress={progress}
-        status={status}
-        disableAnimations={disableAnimations}
-      />
-      
+    <div className="zoned-screen h-full flex flex-col space-y-6">
       <MainZone
         contentType={contentType}
         disableAnimations={disableAnimations}
       >
         <PresenterComponent {...presenterProps} />
       </MainZone>
-      
-      {messages.length > 0 && (
-        <FooterZone
-          messages={messages}
-          disableAnimations={disableAnimations}
-        />
-      )}
     </div>
   );
 }

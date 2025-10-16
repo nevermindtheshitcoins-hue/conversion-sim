@@ -33,11 +33,23 @@ export function generateNonce(): string {
 
 export async function secureApiCall(
   url: string,
-  body: unknown
+  body: unknown,
+  options?: { timeout?: number }
 ): Promise<Response> {
+  const callStartTime = Date.now();
+  console.log('📡 secureApiCall started:', { url, hasBody: !!body, timeout: options?.timeout });
+
   const timestamp = Date.now().toString();
   const nonce = generateNonce();
   const signature = await generateSignature(timestamp, nonce, body);
+
+  console.log('🔐 API call details:', {
+    url,
+    timestamp,
+    nonce: nonce.substring(0, 8) + '...',
+    hasSignature: !!signature,
+    bodySize: JSON.stringify(body).length
+  });
   
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
@@ -49,9 +61,40 @@ export async function secureApiCall(
     headers['x-nonce'] = nonce;
   }
   
-  return fetch(url, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify(body),
-  });
+  try {
+    const controller = new AbortController();
+    const timeoutMs = options?.timeout || 35000;
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+    
+    const response = await fetch(url, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+    
+    clearTimeout(timeoutId);
+    const responseTime = Date.now() - callStartTime;
+    
+    console.log('📡 API call completed:', {
+      url,
+      status: response.status,
+      responseTime: `${responseTime}ms`,
+      ok: response.ok,
+    });
+    
+    return response;
+  } catch (error) {
+    const responseTime = Date.now() - callStartTime;
+    const errorMsg = error instanceof Error ? error.message : String(error);
+    
+    console.error('❌ API call failed:', {
+      url,
+      error: errorMsg,
+      responseTime: `${responseTime}ms`,
+      isTimeout: errorMsg.includes('abort'),
+    });
+    
+    throw error;
+  }
 }

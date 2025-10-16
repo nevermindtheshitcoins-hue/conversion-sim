@@ -4,7 +4,6 @@ export interface ScreenPresenterProps {
   title: string;
   subtitle?: string | undefined;
   helpText: string;
-  hoveredOptionLabel?: string | undefined;
   textValue: string;
   showTextPreview: boolean;
   onTextChange: (value: string) => void;
@@ -12,4 +11,6 @@ export interface ScreenPresenterProps {
   isLoading: boolean;
   options: string[];
   industry: string | null;
+  error?: string | null;
+  onRetry?: (() => void) | undefined;
 }

@@ -100,88 +100,17 @@ async function callAIAssessmentAPI(
   return data;
 }
 
-function generateFallback(requestType: string): FullContextOutput {
-  if (requestType === 'generate_questions') {
-    return {
-      response: 'Generating personalized questions based on your responses...',
-      questions: [
-        'We struggle with measuring success in our key business areas',
-        'This challenge significantly impacts our daily operations',
-        "Previous solutions we've tried haven't delivered expected results",
-        'We have a clear vision of our ideal business outcome',
-        'We have a realistic timeline for addressing our priorities',
-      ],
-    };
-  }
-
-  return {
-    response:
-      "Based on your responses, we've identified key areas for improvement and growth opportunities tailored to your specific situation.",
-    reportFactors: [
-      {
-        factor: 'Strategic Focus',
-        analysis: 'Your responses indicate a clear strategic direction with specific priorities.',
-        recommendation: 'Continue focusing on your identified key areas while monitoring progress.',
-      },
-      {
-        factor: 'Operational Efficiency',
-        analysis: 'There are opportunities to streamline processes and improve workflow.',
-        recommendation: 'Implement systematic process improvements and automation where possible.',
-      },
-      {
-        factor: 'Growth Potential',
-        analysis: 'Strong foundation for scaling with proper resource allocation.',
-        recommendation: 'Develop a structured growth plan with clear milestones.',
-      },
-      {
-        factor: 'Risk Management',
-        analysis: 'Current approach shows awareness of key business risks.',
-        recommendation: 'Establish formal risk assessment and mitigation procedures.',
-      },
-      {
-        factor: 'Team Development',
-        analysis: 'Team capabilities align well with business objectives.',
-        recommendation: 'Invest in targeted skill development and leadership training.',
-      },
-      {
-        factor: 'Technology Integration',
-        analysis: 'Technology usage supports current operations effectively.',
-        recommendation: 'Evaluate emerging technologies for competitive advantage.',
-      },
-      {
-        factor: 'Customer Focus',
-        analysis: 'Customer-centric approach evident in decision-making process.',
-        recommendation: 'Enhance customer feedback systems and personalization.',
-      },
-      {
-        factor: 'Financial Health',
-        analysis: 'Financial planning shows consideration of long-term sustainability.',
-        recommendation: 'Implement regular financial reviews and scenario planning.',
-      },
-    ],
-  };
-}
 
 export async function generateQuestionsFromPrelims(
   userJourney: UserJourney,
   industry: string
 ): Promise<FullContextOutput> {
-  try {
-    return await callAIAssessmentAPI(userJourney, 'generate_questions', industry);
-  } catch (error) {
-    console.error('Question generation error:', error);
-    return generateFallback('generate_questions');
-  }
+  return await callAIAssessmentAPI(userJourney, 'generate_questions', industry);
 }
 
 export async function generateCustomReport(
   userJourney: UserJourney,
   industry: string
 ): Promise<FullContextOutput> {
-  try {
-    return await callAIAssessmentAPI(userJourney, 'generate_report', industry);
-  } catch (error) {
-    console.error('Report generation error:', error);
-    return generateFallback('generate_report');
-  }
+  return await callAIAssessmentAPI(userJourney, 'generate_report', industry);
 }

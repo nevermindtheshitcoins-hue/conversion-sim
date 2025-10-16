@@ -1,5 +1,4 @@
 import type { UserJourney } from './journey-tracker';
-import { sendToParent, isInIframe } from './iframe-utils';
 
 interface AnalyticsPattern {
   sessionId: string;

@@ -16,32 +16,35 @@ export function MainZone({
 
   // Content type specific styling and heights
   const contentStyles: Record<ContentType, string> = {
-    [ContentType.INDUSTRY_PICKER]: 'min-h-[400px] flex flex-col justify-center',
-    [ContentType.SINGLE_CHOICE]: 'min-h-[300px] flex flex-col justify-center',
-    [ContentType.MULTI_CHOICE]: 'min-h-[300px] flex flex-col justify-center',
-    [ContentType.TEXT_INPUT]: 'min-h-[350px] flex flex-col justify-center',
-    [ContentType.AI_LOADING]: 'min-h-[400px] flex items-center justify-center',
-    [ContentType.REPORT_VIEW]: 'min-h-[500px] max-h-[600px] overflow-y-auto scrollbar-thin scrollbar-thumb-zinc-700',
+    [ContentType.INDUSTRY_PICKER]: 'min-h-[400px] justify-start',
+    [ContentType.SINGLE_CHOICE]: 'min-h-[300px] justify-start',
+    [ContentType.MULTI_CHOICE]: 'min-h-[300px] justify-start',
+    [ContentType.TEXT_INPUT]: 'min-h-[350px] justify-start',
+    [ContentType.AI_LOADING]: 'min-h-[400px] items-center justify-center',
+    [ContentType.REPORT_VIEW]:
+      'min-h-[500px] max-h-full overflow-y-auto scrollbar-thin scrollbar-thumb-zinc-700',
+    [ContentType.ERROR_DISPLAY]: 'min-h-[400px] items-center justify-center',
   };
 
   const contentTypeClasses: Record<ContentType, string> = {
-    [ContentType.INDUSTRY_PICKER]: 'industry-picker-content',
-    [ContentType.SINGLE_CHOICE]: 'single-choice-content',
-    [ContentType.MULTI_CHOICE]: 'multi-choice-content',
-    [ContentType.TEXT_INPUT]: 'text-input-content',
-    [ContentType.AI_LOADING]: 'ai-loading-content',
-    [ContentType.REPORT_VIEW]: 'report-view-content',
+    [ContentType.INDUSTRY_PICKER]: 'main-zone--industry-picker',
+    [ContentType.SINGLE_CHOICE]: 'main-zone--single-choice',
+    [ContentType.MULTI_CHOICE]: 'main-zone--multi-choice',
+    [ContentType.TEXT_INPUT]: 'main-zone--text-input',
+    [ContentType.AI_LOADING]: 'main-zone--ai-loading',
+    [ContentType.REPORT_VIEW]: 'main-zone--report-view',
+    [ContentType.ERROR_DISPLAY]: 'main-zone--error-display',
   };
 
   return (
     <div
-      className={`main-zone-content ${contentStyles[contentType]} ${contentTypeClasses[contentType]} ${
+      className={`main-zone flex flex-1 flex-col ${contentStyles[contentType]} ${contentTypeClasses[contentType]} ${
         disableAnimations ? '' : 'transition-all duration-300 ease-in-out'
       }`}
       data-content-type={contentType}
     >
       <div
-        className={disableAnimations ? '' : 'animate-in fade-in slide-in-from-bottom-4 duration-300'}
+        className={`${disableAnimations ? '' : 'animate-in fade-in slide-in-from-bottom-4 duration-300'} flex-1`}
         key={contentType} // Force re-animate on content type change
       >
         {hasContent ? (

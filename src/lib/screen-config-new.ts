@@ -1,4 +1,12 @@
 // src/lib/screen-config-new.ts
+import {
+  BASE_PRELIM_QUESTIONS,
+  INDUSTRY_PRELIM_QUESTIONS,
+  INDUSTRIES,
+  IndustryPrelimData,
+  BasePrelimData
+} from '../data/preliminary-questions';
+
 export interface ScreenConfig {
   title: string;
   subtitle?: string;
@@ -11,100 +19,11 @@ export interface ScreenConfig {
   textInput?: boolean;
 }
 
-export const INDUSTRIES = [
-  'Custom Strategic Initiative',
-  'Governance & Public Sector',
-  'Healthcare & Clinical Research',
-  'Supply Chain & Regulatory Compliance',
-  'Corporate Governance & Board Decisions',
-  'Education & Academic Institutions',
-  'Market Research & Stakeholder Polling',
-] as const;
-
-export const INDUSTRY_BASED_SCREENS: Record<string, Record<string, ScreenConfig>> = {
-  'Governance & Public Sector': {
-    PRELIM_2: {
-      title: "Which governance domain drives your strategic priorities?",
-      options: [
-        'Public elections & civic engagement',
-        'Union & labor organization governance',
-        'Corporate board & shareholder decisions',
-        'Community & HOA governance',
-        'Referendums & policy initiatives',
-      ],
-      context: 'Identify the governance domain for strategic tailoring.',
-      industryBased: true,
-    },
-    PRELIM_3: {
-      title: "What's your primary strategic barrier to success?",
-      options: [
-        'Stakeholder participation & engagement rates',
-        'Trust, fraud prevention & integrity assurance',
-        'Regulatory compliance & audit readiness',
-        'Digital transformation & adoption barriers',
-        'Privacy protection & data sovereignty',
-      ],
-      context: 'Surface strategic pain points to guide executive recommendations.',
-      industryBased: true,
-    },
-  },
-  'Custom Strategic Initiative': {
-    PRELIM_2: {
-      title: 'Describe your strategic initiative or use case',
-      subtitle: 'Be specific about the business problem you\'re solving',
-      options: [],
-      context: 'Custom strategic scenario for DeVOTE pilot simulation.',
-      industryBased: true,
-      textInput: true,
-    },
-    PRELIM_3: {
-      title: 'What type of decision-making process requires transformation?',
-      options: [
-        'Strategic governance & board resolutions',
-        'Stakeholder consent & approval workflows',
-        'Market research & stakeholder polling',
-        'Resource allocation & budget prioritization',
-        'Risk assessment & compliance attestation',
-        'Other strategic process',
-      ],
-      context: 'Identify the strategic process archetype for tailored recommendations.',
-      industryBased: true,
-    },
-  },
-};
+export const INDUSTRY_BASED_SCREENS: IndustryPrelimData = INDUSTRY_PRELIM_QUESTIONS;
 
 export const BASE_SCREENS: Record<string, ScreenConfig> = {
-  PRELIM_1: {
-    title: 'Select Your Strategic Focus Area',
-    subtitle: 'Choose the domain that best aligns with your organization\'s priorities',
-    options: [...INDUSTRIES],
-    context: 'Strategic focus area identification for executive-level assessment',
-  },
-  Q4: {
-    title: 'AI Generated Question 4',
-    options: ['Placeholder'],
-    context: 'AI generated based on preliminary responses',
-    aiGenerated: true,
-  },
-  Q5: {
-    title: 'AI Generated Question 5',
-    options: ['Placeholder'],
-    context: 'AI generated based on preliminary responses',
-    aiGenerated: true,
-  },
-  Q6: {
-    title: 'AI Generated Question 6',
-    options: ['Placeholder'],
-    context: 'AI generated based on preliminary responses',
-    aiGenerated: true,
-  },
-  Q7: {
-    title: 'AI Generated Question 7',
-    options: ['Placeholder'],
-    context: 'AI generated based on preliminary responses',
-    aiGenerated: true,
-  },
-};
+   PRELIM_1: BASE_PRELIM_QUESTIONS.PRELIM_1,
+ };
 
 export function getScreenConfig(screenName: string, industry?: string): ScreenConfig {
   const isIndustryPrelim = screenName === 'PRELIM_2' || screenName === 'PRELIM_3';

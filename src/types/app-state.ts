@@ -9,6 +9,7 @@ export enum ContentType {
   TEXT_INPUT = 'TEXT_INPUT',
   AI_LOADING = 'AI_LOADING',
   REPORT_VIEW = 'REPORT_VIEW',
+  ERROR_DISPLAY = 'ERROR_DISPLAY',
 }
 
 export interface AppState {
@@ -87,12 +88,16 @@ export interface ReportGenerationResponse {
   fallbackUsed?: boolean;
 }
 
+export interface AIGeneratedQuestion {
+  text: string;
+  options?: unknown;
+  type?: 'text_input' | 'multi_choice' | string;
+  maxSelections?: number | null;
+}
+
 export interface AIGeneratedQuestions {
   response: string;
-  questions: Array<{
-    text: string;
-    options: string[];
-  }>;
+  questions: AIGeneratedQuestion[];
 }
 
 export interface NavigationState {
