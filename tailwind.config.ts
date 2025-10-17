@@ -11,9 +11,9 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Arial', 'Helvetica', 'sans-serif'],
-        display: ['Arial Black', 'Helvetica', 'sans-serif'],
-        mono: ['Courier New', 'monospace'],
+        sans: ['Courier New', 'Share Tech Mono', 'monospace'],
+        display: ['Courier New', 'Share Tech Mono', 'monospace'],
+        mono: ['Courier New', 'Share Tech Mono', 'monospace'],
       },
       colors: {
         background: 'hsl(var(--background))',
@@ -27,51 +27,36 @@ export default {
           foreground: 'hsl(var(--popover-foreground))',
         },
         primary: {
-          DEFAULT: 'var(--industrial-orange)',
-          foreground: 'var(--text-primary)',
+          DEFAULT: 'var(--norad-amber)',
+          foreground: 'var(--norad-black)',
         },
         secondary: {
-          DEFAULT: 'var(--industrial-blue)',
-          foreground: 'var(--text-primary)',
+          DEFAULT: 'var(--norad-cyan)',
+          foreground: 'var(--norad-black)',
         },
         muted: {
-          DEFAULT: 'var(--industrial-slate)',
+          DEFAULT: 'var(--norad-steel)',
           foreground: 'var(--text-secondary)',
         },
         accent: {
-          DEFAULT: 'var(--industrial-orange)',
-          foreground: 'var(--text-primary)',
+          DEFAULT: 'var(--norad-amber)',
+          foreground: 'var(--norad-black)',
         },
         destructive: {
-          DEFAULT: 'var(--industrial-orange-dark)',
-          foreground: 'var(--text-primary)',
+          DEFAULT: 'var(--norad-amber)',
+          foreground: 'var(--norad-black)',
         },
-        border: 'var(--industrial-steel)',
-        input: 'var(--industrial-charcoal)',
-        ring: 'var(--industrial-orange)',
-        /* Industrial voting booth specific colors */
-        industrial: {
-          dark: 'var(--industrial-dark)',
-          charcoal: 'var(--industrial-charcoal)',
-          slate: 'var(--industrial-slate)',
-          steel: 'var(--industrial-steel)',
-          concrete: 'var(--industrial-concrete)',
-          orange: {
-            DEFAULT: 'var(--industrial-orange)',
-            dark: 'var(--industrial-orange-dark)',
-          },
-          blue: {
-            DEFAULT: 'var(--industrial-blue)',
-            dark: 'var(--industrial-blue-dark)',
-          },
-        },
-        booth: {
-          panel: 'var(--booth-panel)',
-          button: 'var(--booth-button)',
-          'button-hover': 'var(--booth-button-hover)',
-          'button-active': 'var(--booth-button-active)',
-          screen: 'var(--booth-screen)',
-          'screen-text': 'var(--booth-screen-text)',
+        border: 'var(--norad-steel)',
+        input: 'var(--norad-black)',
+        ring: 'var(--norad-amber)',
+        /* NORAD control panel specific colors */
+        norad: {
+          black: 'var(--norad-black)',
+          dark: 'var(--norad-dark)',
+          charcoal: 'var(--norad-charcoal)',
+          steel: 'var(--norad-steel)',
+          amber: 'var(--norad-amber)',
+          cyan: 'var(--norad-cyan)',
         },
       },
       borderRadius: {

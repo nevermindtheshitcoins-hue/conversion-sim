@@ -6,6 +6,7 @@ import { ControlPanel } from '../components/ControlPanel';
 import { ZonedScreen } from '../components/ZonedScreen';
 import { HeaderZone as ProgressIndicator } from '../components/zones/HeaderZone';
 import { ArrowLeft, Check, Clipboard, RefreshCcw } from 'lucide-react';
+import { DeVOTELogo } from '../components/DeVOTELogo';
 import { useAssessmentFlow } from '../hooks/useAssessmentFlow';
 import { BUTTON_STYLES, FOCUS_STYLES } from '../lib/ui-constants';
 
@@ -93,19 +94,6 @@ export default function MainApp() {
           <RefreshCcw className="h-6 w-6 text-yellow-900" />
         </button>
         
-        {/* Progress indicator in footer - larger */}
-        <div className="flex-1 flex justify-center px-4">
-          <div className="scale-125">
-            <ProgressIndicator
-              currentStep={currentStep}
-              totalSteps={totalSteps}
-              progress={progress}
-              status={headerStatus}
-              disableAnimations={!motionEnabled}
-            />
-          </div>
-        </div>
-        
         <div className="flex items-center gap-4">
           <button
             type="button"
@@ -123,17 +111,16 @@ export default function MainApp() {
             onClick={state.isReport ? handlers.handleCopyReport : handlers.handleConfirm}
             disabled={!navigationState.canConfirm && !state.isReport}
             aria-label={state.isReport ? 'Copy report to clipboard' : 'Confirm selection and continue'}
-            className={`flex h-14 w-20 items-center justify-center md:h-16 md:w-24 ${BUTTON_STYLES.base} ${FOCUS_STYLES.ring} ${
+            className={`flex h-14 w-20 items-center justify-center md:h-16 md:w-24 ${BUTTON_STYLES.base} ${FOCUS_STYLES.ring} matrix-glow ${
               navigationState.canConfirm || state.isReport
-                ? BUTTON_STYLES.primary
+                ? `${BUTTON_STYLES.primary} shadow-matrix-soft hover:shadow-matrix-strong`
                 : BUTTON_STYLES.primaryDisabled
             }`}
           >
-            {state.isReport ? (
-              <Clipboard className="h-6 w-6 text-emerald-100" />
-            ) : (
-              <Check className="h-7 w-7 text-emerald-100" />
-            )}
+            <DeVOTELogo
+              className="text-matrix-green hover:text-matrix-green h-7 w-7"
+              size={28}
+            />
           </button>
         </div>
       </div>
@@ -184,46 +171,27 @@ export default function MainApp() {
     ]
   );
 
-  const headerZone = useMemo(
-    () => (
-      <div className="flex flex-col items-center text-center w-full max-w-4xl px-4">
-        {/* Industrial voting booth header */}
-        <div className="w-full bg-booth-panel border-b-2 border-industrial-steel p-3 mb-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-industrial-orange rounded-full"></div>
-              <h2 className="text-lg font-display font-black uppercase tracking-wider text-text-primary">
-                DeVOTE
-              </h2>
-            </div>
-            <div className="text-text-secondary text-sm font-sans">
-              Voting Booth System
-            </div>
-          </div>
-        </div>
-        
-        <div className="w-full bg-industrial-charcoal border-2 border-industrial-steel rounded-lg p-4 mb-4">
-          <h1 className="text-2xl font-display font-black uppercase tracking-widest text-text-primary mb-2">
-            Pilot Scenario Simulator
-          </h1>
-          <p className="text-text-secondary text-sm font-sans">
-            Select your strategic focus area
-          </p>
-        </div>
-      </div>
-    ),
-    [currentStep, totalSteps, progress, headerStatus, motionEnabled]
-  );
+  // Debug logging to validate prop types
+  console.log('MainApp -> AppContainer props:', {
+    completionCount: typeof completionCount,
+    currentStep: typeof currentStep,
+    totalSteps: typeof totalSteps,
+    status: typeof headerStatus,
+    headerStatus
+  });
 
   return (
     <AppContainer
-      headerZone={headerZone}
+      headerZone={null}
       screenZone={screenZone}
       keypadZone={keypadZone}
       footerZone={footerZone}
       disableMotion={!motionEnabled}
       scanlines={motionEnabled}
       completionCount={completionCount}
+      currentStep={currentStep}
+      totalSteps={totalSteps}
+      status={headerStatus}
     />
   );
 }

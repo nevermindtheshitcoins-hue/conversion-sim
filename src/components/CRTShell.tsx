@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { OrbitalSystem } from './OrbitalSystem';
+import { FilamentTubeClock } from './FilamentTubeClock';
 
 interface CRTShellProps {
   headerZone: ReactNode;
@@ -9,7 +9,9 @@ interface CRTShellProps {
   disableMotion?: boolean;
   scanlines?: boolean;
   vignette?: boolean;
-  completionCount?: number;
+  currentStep?: number;
+  totalSteps?: number;
+  status?: 'active' | 'loading' | 'complete';
 }
 
 export default function CRTShell({
@@ -20,8 +22,18 @@ export default function CRTShell({
   disableMotion = false,
   scanlines = true,
   vignette = true,
-  completionCount = 0,
+  currentStep,
+  totalSteps,
+  status,
 }: CRTShellProps) {
+  // Debug logging to validate CRTShell props
+  console.log('CRTShell received props:', {
+    currentStep: typeof currentStep,
+    totalSteps: typeof totalSteps,
+    status: typeof status,
+    completionCount: typeof arguments[0]?.completionCount
+  });
+
   const hasHeader = Boolean(headerZone);
   const layoutRowClasses = hasHeader
     ? '[grid-template-rows:auto_minmax(0,3fr)_auto] md:[grid-template-rows:auto_minmax(0,3fr)_auto]'
@@ -32,6 +44,14 @@ export default function CRTShell({
 
   return (
     <div className="crt-shell relative h-full w-full overflow-hidden rounded-lg border-2 border-industrial-steel bg-industrial-dark shadow-[0_32px_80px_rgba(0,0,0,0.8)]">
+      {/* Filament Tube Clock positioned above CRT shell */}
+      {currentStep !== undefined && totalSteps !== undefined && (
+        <FilamentTubeClock
+          currentStep={currentStep}
+          totalSteps={totalSteps}
+          status={status || 'active'}
+        />
+      )}
       <div
         className={`crt-shell__layout relative grid h-full w-full grid-cols-1 gap-1 p-1 md:grid-cols-[minmax(0,0.7fr)_minmax(0,0.3fr)] md:gap-1 md:p-2 ${layoutRowClasses}`}
       >
@@ -52,12 +72,6 @@ export default function CRTShell({
           className={`crt-shell__keypad col-span-1 flex flex-col gap-4 rounded-lg border-2 border-industrial-steel bg-booth-panel p-2 shadow-[0_20px_50px_rgba(0,0,0,0.7)] ${keypadRowClass}`}
           style={{ minHeight: '420px' }}
         >
-          {!disableMotion && (
-            <OrbitalSystem
-              completionCount={completionCount}
-              disableAnimations={disableMotion}
-            />
-          )}
           {keypadZone}
         </aside>
         <footer

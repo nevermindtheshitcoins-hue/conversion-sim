@@ -154,30 +154,19 @@ textarea:focus {
 
 .app-container__inner {
   position: relative;
-  border-radius: 2rem;
-  background-image:
-    linear-gradient(145deg, rgba(55, 65, 81, 0.92) 0%, rgba(15, 23, 42, 0.95) 55%, rgba(10, 12, 19, 0.98) 100%),
-    linear-gradient(35deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0) 45%),
-    linear-gradient(0deg, rgba(255, 255, 255, 0.07) 0%, rgba(255, 255, 255, 0) 55%);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow:
-    inset 0 0 24px rgba(0, 0, 0, 0.55),
-    0 32px 90px rgba(0, 0, 0, 0.55);
+  background: var(--norad-black);
+  border: 2px solid var(--norad-steel);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.8);
   overflow: hidden;
+  filter: contrast(1.2);
 }
 
 .app-container__inner::after {
   content: '';
   position: absolute;
   inset: 0;
-  border-radius: inherit;
   pointer-events: none;
-  background-image:
-    linear-gradient(90deg, rgba(255, 255, 255, 0.035) 0px, rgba(255, 255, 255, 0.035) 1px, transparent 1px, transparent 3px),
-    linear-gradient(0deg, rgba(255, 255, 255, 0.035) 0px, rgba(255, 255, 255, 0.035) 1px, transparent 1px, transparent 3px),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0) 65%);
-  background-size: 3px 3px, 3px 3px, 100% 100%;
-  opacity: 0.45;
+  background: transparent;
 }
 
 .arcade-button {
@@ -185,33 +174,28 @@ textarea:focus {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background-image: linear-gradient(180deg, #4ade80 0%, #16a34a 60%, #0f7a3f 100%);
-  border: 1px solid rgba(209, 250, 229, 0.6);
-  color: #f0fdf4;
-  text-shadow: 0 0 6px rgba(52, 211, 153, 0.65);
-  box-shadow:
-    0 8px 18px rgba(34, 197, 94, 0.35),
-    inset 0 -2px 4px rgba(10, 12, 19, 0.6);
-  transition: transform 150ms ease, box-shadow 150ms ease, filter 150ms ease;
+  font-family: 'Courier New', 'Share Tech Mono', monospace;
+  background: var(--norad-dark);
+  border: 1px solid var(--norad-amber);
+  color: var(--norad-amber);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.8);
+  transition: background-color 150ms ease, border-color 150ms ease;
 }
 
 .arcade-button:hover {
-  filter: brightness(1.08);
-  box-shadow:
-    0 12px 24px rgba(34, 197, 94, 0.45),
-    inset 0 -3px 6px rgba(10, 12, 19, 0.55);
+  background: var(--norad-charcoal);
+  border-color: var(--norad-amber);
 }
 
 .arcade-button:active {
-  animation: arcadeButtonPress 160ms ease;
+  transform: translateY(1px);
 }
 
 .arcade-button:disabled {
-  background-image: linear-gradient(180deg, #1f2937 0%, #111827 100%);
-  border-color: rgba(148, 163, 184, 0.35);
-  color: rgba(148, 163, 184, 0.75);
-  box-shadow: inset 0 -2px 4px rgba(8, 10, 16, 0.65);
-  filter: none;
+  background: var(--norad-black);
+  border-color: var(--norad-steel);
+  color: var(--text-disabled);
+  opacity: 0.5;
 }
 
 @keyframes arcadeButtonPress {
@@ -304,48 +288,36 @@ textarea:focus {
   }
 }
 
-/* --- Industrial Voting Booth Theme Tokens ------------------------------------- */
+/* --- NORAD Control Panel Theme Tokens ------------------------------------- */
 :root {
-  /* Primary industrial colors */
-  --industrial-dark: #0a0a0a; /* Deep black for voting booth interior */
-  --industrial-charcoal: #1a1a1a; /* Charcoal gray for panels */
-  --industrial-slate: #2a2a2a; /* Slate gray for buttons and controls */
-  --industrial-steel: #3a3a3a; /* Steel gray for structural elements */
-  --industrial-concrete: #4a4a4a; /* Concrete gray for base */
+  /* Primary NORAD colors */
+  --norad-black: #000000; /* Deep black for control panel background */
+  --norad-dark: #0a0a0a; /* Dark gray for panels */
+  --norad-charcoal: #1a1a1a; /* Charcoal for structural elements */
+  --norad-steel: #2a2a2a; /* Steel gray for borders */
   
-  /* Accent colors */
-  --industrial-orange: #ff6b35; /* Strong orange for important buttons/accents */
-  --industrial-orange-dark: #e55a2b; /* Darker orange for pressed states */
-  --industrial-blue: #1e88e5; /* Industrial blue for informational elements */
-  --industrial-blue-dark: #1976d2; /* Darker blue for pressed states */
+  /* LED colors - amber and cyan only */
+  --norad-amber: #FFA500; /* Amber LED for primary indicators */
+  --norad-cyan: #00CED1; /* Cyan LED for secondary indicators */
   
   /* Text colors */
-  --text-primary: #f0f0f0; /* Off-white for primary text */
-  --text-secondary: #cccccc; /* Light gray for secondary text */
-  --text-disabled: #999999; /* Medium gray for disabled text */
+  --text-primary: #FFA500; /* Amber for primary text */
+  --text-secondary: #00CED1; /* Cyan for secondary text */
+  --text-disabled: #4a4a4a; /* Dark gray for disabled text */
   
-  /* Shadows */
-  --shadow-light: rgba(0,0,0,0.2);
-  --shadow-medium: rgba(0,0,0,0.4);
-  --shadow-heavy: rgba(0,0,0,0.6);
-  
-  /* Voting booth specific */
-  --booth-panel: #151515; /* Dark panel color */
-  --booth-button: #333333; /* Button base color */
-  --booth-button-hover: #444444; /* Button hover state */
-  --booth-button-active: #ff6b35; /* Button active state (orange) */
-  --booth-screen: #000000; /* Screen background */
-  --booth-screen-text: #00ff00; /* Classic green screen text */
+  /* Screen specific */
+  --screen-bg: #000000; /* Pure black screen background */
+  --screen-border: #2a2a2a; /* Subtle border for screen */
 }
 
-/* --- New Layout & Styling for Industrial Voting Booth ------------------------ */
+/* --- New Layout & Styling for NORAD Control Panel ------------------------ */
 .engraved-title {
-  font-family: "Arial Black", "Helvetica", sans-serif;
-  font-weight: 900;
-  letter-spacing: 0.1em;
+  font-family: "Courier New", "Share Tech Mono", monospace;
+  font-weight: 700;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: var(--text-primary);
-  text-shadow: 0 2px 0 var(--industrial-charcoal), 0 4px 4px var(--shadow-medium);
+  color: var(--norad-amber);
+  text-shadow: none;
 }
 
 .cabinet-body { min-height: 0; }
@@ -354,19 +326,20 @@ textarea:focus {
 }
 
 .screen-bezel {
-  background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0a0a0a 100%);
-  border: 8px solid #222;
-  box-shadow: inset 0 0 30px rgba(0,0,0,0.9), 0 0 20px rgba(0,0,0,0.8);
+  background: var(--norad-black);
+  border: 2px solid var(--norad-steel);
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.8);
   min-height: clamp(360px, 48vw, 640px);
   padding: clamp(1.5rem, 3vw, 2.5rem);
   display: flex;
   align-items: stretch;
+  filter: contrast(1.2);
 }
 
 .control-panel {
-  background: linear-gradient(180deg, var(--metal-700), var(--metal-600));
-  border-radius: 12px;
-  box-shadow: 0 12px 24px var(--shadow-2), inset 0 2px 2px rgba(255,255,255,0.06);
+  background: var(--norad-dark);
+  border: 1px solid var(--norad-steel);
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.8);
   padding: clamp(12px,1.5vw,20px);
   display: flex;
   align-items: stretch;
@@ -374,24 +347,22 @@ textarea:focus {
 }
 
 .base {
-  background:
-    radial-gradient(ellipse at 50% 0%, rgba(78,227,166,0.25) 0%, rgba(78,227,166,0) 65%) ,
-    linear-gradient(180deg, var(--metal-700), var(--metal-800));
-  box-shadow: inset 0 12px 24px rgba(0,0,0,0.45);
+  background: var(--norad-charcoal);
+  border-top: 1px solid var(--norad-steel);
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.8);
 }
 
 /* LED displays for selection buttons */
 .am-led {
-  font: 700 12px/1 "Share Tech Mono", monospace;
+  font: 700 12px/1 "Courier New", "Share Tech Mono", monospace;
   padding: 6px 10px;
-  border-radius: 6px;
-  background: #0B0E12;
-  border: 1px solid #11151B;
+  background: var(--norad-black);
+  border: 1px solid var(--norad-steel);
   min-width: 2ch;
   text-align: center;
 }
-.am-led--on  { color: var(--led-green); text-shadow: 0 0 4px var(--led-green), 0 0 10px var(--led-green); }
-.am-led--off { color: #2B3240; }
+.am-led--on  { color: var(--norad-amber); text-shadow: 0 0 4px var(--norad-amber); }
+.am-led--off { color: var(--text-disabled); }
 .am-led--pulse { animation: led-pulse 1400ms ease-in-out infinite; }
 
 @keyframes led-pulse {
@@ -400,12 +371,12 @@ textarea:focus {
 }
 
 /* Functional button skins (rectangular back/confirm, round reset) */
-.am-func { position: relative; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; }
-.am-func--back    { height: 56px; min-width: 120px; border-radius: 12px; background: linear-gradient(180deg,#F36A6A,var(--btn-red)); border: 3px solid #7A1E1E; color: #1A0F0F; box-shadow: 0 8px 18px rgba(214,59,59,0.35), inset 0 -2px 4px rgba(10,12,19,0.6); }
-.am-func--confirm { height: 56px; min-width: 140px; border-radius: 12px; background: linear-gradient(180deg,#5EDB8B,var(--btn-green)); border: 3px solid #185A35; color: #0F1A12; box-shadow: 0 8px 18px rgba(45,174,90,0.35), inset 0 -2px 4px rgba(10,12,19,0.6); }
-.am-func--reset   { width: 48px; height: 48px; border-radius: 999px; background: radial-gradient(circle at 30% 20%, #FFF, #D6D6D6 60%, #AAA 100%); border: 4px solid var(--btn-rim); box-shadow: 0 6px 10px var(--shadow-2), inset 0 -2px 3px rgba(0,0,0,0.4); color: #0A0C12; }
-.am-func:active   { transform: translateY(1px) scale(0.985); }
-.am-func[disabled], .am-func[aria-disabled="true"] { filter: grayscale(0.2) brightness(0.9); opacity: 0.75; pointer-events: none; }
+.am-func { position: relative; display: inline-flex; align-items: center; justify-content: center; font-family: "Courier New", "Share Tech Mono", monospace; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; }
+.am-func--back    { height: 56px; min-width: 120px; background: var(--norad-dark); border: 1px solid var(--norad-cyan); color: var(--norad-cyan); box-shadow: inset 0 2px 4px rgba(0,0,0,0.8); }
+.am-func--confirm { height: 56px; min-width: 140px; background: var(--norad-dark); border: 1px solid var(--norad-amber); color: var(--norad-amber); box-shadow: inset 0 2px 4px rgba(0,0,0,0.8); }
+.am-func--reset   { width: 48px; height: 48px; background: var(--norad-dark); border: 1px solid var(--norad-steel); box-shadow: inset 0 2px 4px rgba(0,0,0,0.8); color: var(--text-disabled); }
+.am-func:active   { transform: translateY(1px); }
+.am-func[disabled], .am-func[aria-disabled="true"] { opacity: 0.5; pointer-events: none; }
 
 /* Selection button skin with LED badge */
 .am-select {
@@ -414,14 +385,13 @@ textarea:focus {
   gap: 12px;
   align-items: center;
   min-height: 56px;
-  border-radius: 12px;
-  border: 2px solid #1f2937;
-  background: #10151c;
+  border: 1px solid var(--norad-steel);
+  background: var(--norad-black);
   padding: 12px 14px;
-  transition: transform 120ms ease, filter 120ms ease, background-color 120ms ease, border-color 120ms ease;
+  transition: background-color 120ms ease, border-color 120ms ease;
 }
-.am-select:hover { transform: translateY(-1px); border-color: rgba(255,210,63,0.6); background: #131a24; }
-.am-select.is-active { border-color: var(--yellow-500); background: #151d29; box-shadow: 0 0 0 2px rgba(255,210,63,0.35), 0 10px 20px rgba(0,0,0,0.35); }
+.am-select:hover { border-color: var(--norad-amber); background: var(--norad-dark); }
+.am-select.is-active { border-color: var(--norad-amber); background: var(--norad-dark); box-shadow: inset 0 2px 4px rgba(0,0,0,0.8); }
 .am-select.is-error  { animation: error-flash 600ms ease-in-out 2; }
 
 @keyframes error-flash {
@@ -431,16 +401,30 @@ textarea:focus {
 }
 
 .chat-box {
-  font-family: 'Courier New', monospace;
-  background: linear-gradient(rgba(10,10,10,0.9), rgba(5,5,5,0.95));
-  border: 1px solid var(--industrial-steel);
-  box-shadow: 0 0 10px var(--shadow-medium);
+  font-family: 'Courier New', 'Share Tech Mono', monospace;
+  background: var(--norad-black);
+  border: 1px solid var(--norad-steel);
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.8);
   min-height: 300px;
 }
 
 /* Text glow effect for CRT/TV aesthetic */
 .text-shadow-glow {
   text-shadow: 0 0 10px currentColor, 0 0 20px currentColor, 0 0 30px currentColor;
+}
+
+/* Phosphor glow for amber text (NORAD aesthetic) - brighter for readability */
+.text-norad-amber,
+.text-primary {
+  color: #FFB84D; /* Brighter amber */
+  text-shadow: 0 0 6px rgba(255, 184, 77, 0.9), 0 0 12px rgba(255, 165, 0, 0.5);
+}
+
+/* Phosphor glow for cyan text - brighter for readability */
+.text-norad-cyan,
+.text-secondary {
+  color: #00E5E8; /* Brighter cyan */
+  text-shadow: 0 0 6px rgba(0, 229, 232, 0.9), 0 0 12px rgba(0, 206, 209, 0.5);
 }
 
 .zoned-screen {
@@ -454,47 +438,40 @@ textarea:focus {
   min-width: 0;
 }
 
-/* Main zone content type specific styles - Industrial Voting Booth */
+/* Main zone content type specific styles - NORAD Control Panel */
 .main-zone--industry-picker {
-  background: var(--booth-panel);
-  border: 1px solid var(--industrial-steel);
-  border-radius: 4px;
+  background: var(--norad-black);
+  border: 1px solid var(--norad-steel);
 }
 
 .main-zone--single-choice {
-  background: var(--booth-panel);
-  border: 1px solid var(--industrial-steel);
-  border-radius: 4px;
+  background: var(--norad-black);
+  border: 1px solid var(--norad-steel);
 }
 
 .main-zone--multi-choice {
-  background: var(--booth-panel);
-  border: 1px solid var(--industrial-steel);
-  border-radius: 4px;
+  background: var(--norad-black);
+  border: 1px solid var(--norad-steel);
 }
 
 .main-zone--text-input {
-  background: var(--booth-panel);
-  border: 1px solid var(--industrial-steel);
-  border-radius: 4px;
+  background: var(--norad-black);
+  border: 1px solid var(--norad-steel);
 }
 
 .main-zone--ai-loading {
-  background: var(--booth-panel);
-  border: 1px solid var(--industrial-steel);
-  border-radius: 4px;
+  background: var(--norad-black);
+  border: 1px solid var(--norad-steel);
 }
 
 .main-zone--report-view {
-  background: var(--booth-panel);
-  border: 1px solid var(--industrial-steel);
-  border-radius: 4px;
+  background: var(--norad-black);
+  border: 1px solid var(--norad-steel);
 }
 
 .main-zone--error-display {
-  background: var(--booth-panel);
-  border: 1px solid var(--industrial-steel);
-  border-radius: 4px;
+  background: var(--norad-black);
+  border: 1px solid var(--norad-steel);
 }
 
 /* Scrollbar styling for report view */
@@ -592,4 +569,62 @@ textarea:focus {
 
 /* Matrix/Cyberpunk Text Effects - REMOVED as per user request */
 
+/* Matrix/Cyberpunk Styling Classes */
+.shadow-matrix-soft {
+  box-shadow:
+    0 0 10px rgba(0, 255, 65, 0.3),
+    0 0 20px rgba(0, 255, 65, 0.2),
+    0 0 30px rgba(0, 255, 65, 0.1);
+}
+
+.shadow-matrix-strong {
+  box-shadow:
+    0 0 15px rgba(0, 255, 65, 0.5),
+    0 0 30px rgba(0, 255, 65, 0.3),
+    0 0 45px rgba(0, 255, 65, 0.2);
+}
+
+.text-matrix-green {
+  color: #00FF41;
+  text-shadow:
+    0 0 5px rgba(0, 255, 65, 0.8),
+    0 0 10px rgba(0, 255, 65, 0.6),
+    0 0 15px rgba(0, 255, 65, 0.4);
+}
+
+.bg-matrix-green {
+  background-color: #00FF41;
+  box-shadow:
+    0 0 10px rgba(0, 255, 65, 0.3),
+    inset 0 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.matrix-glow {
+  position: relative;
+}
+
+.matrix-glow::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(45deg, #00FF41, #00CC33, #00FF41);
+  border-radius: inherit;
+  z-index: -1;
+  opacity: 0.7;
+  animation: matrix-pulse 2s ease-in-out infinite alternate;
+}
+
+@keyframes matrix-pulse {
+  0% {
+    opacity: 0.5;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0.8;
+    transform: scale(1.02);
+  }
+}
 /* Matrix terminal overhaul - REMOVED as per user request */

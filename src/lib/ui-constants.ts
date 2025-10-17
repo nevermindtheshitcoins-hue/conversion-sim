@@ -1,16 +1,16 @@
-// Centralized UI constants for consistent styling and animations - Industrial Voting Booth Theme
+// Centralized UI constants for consistent styling and animations - NORAD Control Panel Theme
 
 export const BUTTON_STYLES = {
-  base: 'rounded-lg border-2 shadow-lg active:scale-95 transition-transform',
-  primary: 'bg-industrial-orange border-industrial-orange-dark hover:bg-industrial-orange-dark text-text-primary rounded-lg',
-  primaryDisabled: 'bg-industrial-charcoal border-industrial-steel opacity-50 cursor-not-allowed rounded-lg',
-  secondary: 'bg-industrial-blue border-industrial-blue-dark hover:bg-industrial-blue-dark text-text-primary rounded-lg',
-  secondaryDisabled: 'bg-industrial-charcoal border-industrial-steel opacity-50 cursor-not-allowed rounded-lg',
-  accent: 'bg-industrial-orange border-industrial-orange-dark hover:bg-industrial-orange-dark text-text-primary',
+  base: 'border active:translate-y-px transition-transform',
+  primary: 'bg-norad-dark border-norad-amber hover:bg-norad-charcoal text-norad-amber',
+  primaryDisabled: 'bg-norad-black border-norad-steel opacity-50 cursor-not-allowed',
+  secondary: 'bg-norad-dark border-norad-cyan hover:bg-norad-charcoal text-norad-cyan',
+  secondaryDisabled: 'bg-norad-black border-norad-steel opacity-50 cursor-not-allowed',
+  accent: 'bg-norad-dark border-norad-amber hover:bg-norad-charcoal text-norad-amber',
 } as const;
 
 export const FOCUS_STYLES = {
-  ring: 'focus:outline-none focus:ring-2 focus:ring-industrial-orange focus:ring-offset-2 focus:ring-offset-industrial-charcoal',
+  ring: 'focus:outline-none focus:ring-1 focus:ring-norad-amber',
 } as const;
 
 export const ANIMATION_DURATIONS = {
@@ -24,44 +24,44 @@ export const ANIMATION_DURATIONS = {
 
 export const STATUS_COLORS = {
   active: {
-    background: 'bg-industrial-orange',
-    shadow: 'shadow-[0_0_12px_rgba(255,107,53,0.5)]',
-    text: 'text-text-primary',
+    background: 'bg-norad-dark',
+    shadow: '',
+    text: 'text-norad-amber',
   },
   loading: {
-    background: 'bg-industrial-blue',
-    shadow: 'shadow-[0_0_12px_rgba(30,136,229,0.5)]',
-    text: 'text-text-primary',
+    background: 'bg-norad-dark',
+    shadow: '',
+    text: 'text-norad-cyan',
   },
   complete: {
-    background: 'bg-industrial-orange',
-    shadow: 'shadow-[0_0_12px_rgba(255,107,53,0.5)]',
-    text: 'text-text-primary',
+    background: 'bg-norad-dark',
+    shadow: '',
+    text: 'text-norad-amber',
   },
   error: {
-    background: 'bg-industrial-orange',
-    shadow: 'shadow-[0_0_12px_rgba(255,107,53,0.5)]',
-    text: 'text-text-primary',
+    background: 'bg-norad-dark',
+    shadow: '',
+    text: 'text-norad-amber',
   },
 } as const;
 
 export const CONTROL_PANEL_STYLES = {
   button: {
-    base: 'w-full h-16 rounded-lg border-2 px-4 text-left transition-all duration-150 overflow-hidden relative group active:scale-[0.98] active:shadow-[inset_0_4px_8px_rgba(0,0,0,0.6)]',
-    active: 'border-industrial-orange bg-booth-panel shadow-[inset_0_2px_4px_rgba(0,0,0,0.4),0_0_16px_rgba(255,107,53,0.4)] transform scale-[0.98]',
-    disabled: 'border-industrial-steel bg-booth-panel text-text-disabled cursor-not-allowed shadow-[inset_0_2px_4px_rgba(0,0,0,0.6)]',
-    default: 'border-industrial-steel bg-booth-panel text-text-primary shadow-[inset_0_1px_2px_rgba(255,255,255,0.1),0_2px_4px_rgba(0,0,0,0.3)]',
+    base: 'w-full h-16 border px-4 text-left transition-all duration-150 overflow-hidden relative group active:translate-y-px shadow-[inset_0_2px_4px_rgba(0,0,0,0.8)]',
+    active: 'border-norad-amber bg-norad-dark',
+    disabled: 'border-norad-steel bg-norad-black text-text-disabled cursor-not-allowed',
+    default: 'border-norad-steel bg-norad-black text-text-primary',
   },
   ledText: {
-    base: 'font-sans text-sm font-medium relative z-10 transition-all duration-150 whitespace-nowrap',
-    active: 'text-industrial-orange',
+    base: 'font-mono text-sm font-bold relative z-10 transition-all duration-150 whitespace-nowrap',
+    active: 'text-norad-amber',
     disabled: 'text-text-disabled',
     default: 'text-text-primary',
   },
   ledScreen: {
-    base: 'absolute inset-1 rounded-md bg-booth-panel border border-industrial-steel shadow-[inset_0_2px_4px_rgba(0,0,0,0.8)]',
-    active: 'border-industrial-orange shadow-[inset_0_2px_4px_rgba(0,0,0,0.8),inset_0_0_8px_rgba(255,107,53,0.1)]',
-    disabled: 'border-industrial-steel',
+    base: 'absolute inset-1 bg-norad-black border border-norad-steel shadow-[inset_0_2px_4px_rgba(0,0,0,0.8)]',
+    active: 'border-norad-amber',
+    disabled: 'border-norad-steel',
     default: '',
   },
 } as const;

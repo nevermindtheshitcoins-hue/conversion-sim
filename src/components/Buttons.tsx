@@ -65,17 +65,17 @@ export function Buttons({
 
   return (
     <aside className="col-span-full lg:col-span-5 flex flex-col">
-      <div className="flex-1 rounded-lg border-2 border-industrial-steel bg-booth-panel p-6 flex flex-col gap-6">
+      <div className="flex-1 border border-norad-steel bg-norad-black p-6 flex flex-col gap-6 shadow-[inset_0_2px_4px_rgba(0,0,0,0.8)]">
         <div>
-          <div className="mb-2 flex items-center justify-between text-xs uppercase tracking-[0.35em] text-text-secondary">
+          <div className="mb-2 flex items-center justify-between font-mono text-xs uppercase tracking-[0.2em] text-norad-cyan">
             <span>
               Step {clampedStep} of {total}
             </span>
             <span>Progress</span>
           </div>
-          <div className="h-2 rounded-full bg-industrial-charcoal overflow-hidden">
+          <div className="h-2 bg-norad-dark overflow-hidden border border-norad-steel">
             <div
-              className="h-full bg-industrial-orange transition-all duration-300"
+              className="h-full bg-norad-amber transition-all duration-300"
               style={{ width: `${normalizedProgress}%` }}
             />
           </div>
@@ -87,13 +87,11 @@ export function Buttons({
               value={textValue}
               onChange={(e) => onTextChange(e.target.value)}
               placeholder="Describe your scenario where DeVOTE technology could be used..."
-              className="w-full h-48 rounded-lg border-2 border-industrial-steel bg-booth-panel px-4 py-3 text-sm text-text-primary placeholder-text-secondary focus:outline-none focus:ring-2 focus:ring-industrial-orange"
+              className="w-full h-48 border border-norad-steel bg-norad-black px-4 py-3 font-mono text-sm text-norad-amber placeholder-text-disabled resize-none focus:outline-none focus:border-norad-amber transition-colors shadow-[inset_0_2px_4px_rgba(0,0,0,0.8)]"
               maxLength={500}
               autoFocus
             />
-            <div className="text-xs text-text-secondary text-center">
-              {textValue.length}/500 characters (minimum 5)
-            </div>
+            <p className="font-mono text-xs text-norad-cyan">{textValue.length}/500 characters (minimum 5)</p>
           </div>
         )}
 
@@ -112,10 +110,10 @@ export function Buttons({
                   onClick={() => onSelect(value, isMultiSelect)}
                   onMouseEnter={() => onHover(value)}
                   onMouseLeave={() => onHover(null)}
-                  className={`w-full rounded-lg border-2 px-5 py-4 text-left transition-colors ${FOCUS_STYLES.ring} ${
+                  className={`flex items-center justify-center gap-2 px-6 py-3 border font-mono font-bold uppercase tracking-wider text-sm transition-all shadow-[inset_0_2px_4px_rgba(0,0,0,0.8)] ${
                     active
-                      ? 'border-industrial-orange bg-booth-panel text-text-primary'
-                      : 'border-industrial-steel bg-booth-panel text-text-primary hover:border-industrial-orange'
+                      ? 'border-norad-cyan bg-norad-dark text-norad-cyan hover:bg-norad-charcoal active:translate-y-px'
+                      : 'border-norad-steel bg-norad-black text-text-disabled cursor-not-allowed opacity-50'
                   }`}
                   data-button-click-sound={buttonClickSound}
                   data-button-press-effect={buttonPressEffect}
@@ -134,7 +132,7 @@ export function Buttons({
 
         {error && (
           <div
-            className="rounded-lg border-2 border-industrial-orange bg-industrial-charcoal px-4 py-3 text-sm text-text-primary"
+            className="border border-norad-amber bg-norad-dark px-4 py-3 font-mono text-sm text-norad-amber shadow-[inset_0_2px_4px_rgba(0,0,0,0.8)]"
             role="alert"
           >
             {error}
@@ -142,12 +140,12 @@ export function Buttons({
         )}
       </div>
 
-      <div className="mt-5 rounded-lg border-2 border-industrial-steel bg-booth-panel px-6 py-4 flex items-center justify-between">
+      <div className="mt-5 border border-norad-steel bg-norad-black px-6 py-4 flex items-center justify-between shadow-[inset_0_2px_4px_rgba(0,0,0,0.8)]">
         <button
           type="button"
           onClick={onReset}
           aria-label="Reset assessment"
-          className={`inline-flex h-12 w-12 items-center justify-center rounded-full border ${BUTTON_STYLES.accent} ${FOCUS_STYLES.ring}`}
+          className={`inline-flex h-12 w-12 items-center justify-center border ${BUTTON_STYLES.accent} ${FOCUS_STYLES.ring} shadow-[inset_0_2px_4px_rgba(0,0,0,0.8)]`}
           data-button-click-sound={buttonClickSound}
           data-button-press-effect={buttonPressEffect}
         >
@@ -159,7 +157,7 @@ export function Buttons({
             onClick={onBack}
             disabled={isFirstScreen}
             aria-label="Go back to previous question"
-            className={`inline-flex h-16 w-16 items-center justify-center rounded-full border ${BUTTON_STYLES.secondary} ${FOCUS_STYLES.ring} disabled:opacity-50`}
+            className={`inline-flex h-16 w-16 items-center justify-center border ${BUTTON_STYLES.secondary} ${FOCUS_STYLES.ring} disabled:opacity-50 shadow-[inset_0_2px_4px_rgba(0,0,0,0.8)]`}
             data-button-click-sound={buttonClickSound}
             data-button-press-effect={buttonPressEffect}
           />
@@ -168,7 +166,7 @@ export function Buttons({
             onClick={isReport ? onCopyReport : onConfirm}
             disabled={!canConfirm && !isReport}
             aria-label={isReport ? 'Copy report to clipboard' : 'Confirm selection and continue'}
-            className={`inline-flex h-16 w-16 items-center justify-center rounded-full border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-industrial-orange ${
+            className={`inline-flex h-16 w-16 items-center justify-center border transition-colors focus:outline-none focus-visible:ring-1 focus-visible:ring-norad-amber shadow-[inset_0_2px_4px_rgba(0,0,0,0.8)] ${
               canConfirm || isReport
                 ? BUTTON_STYLES.primary
                 : BUTTON_STYLES.primaryDisabled

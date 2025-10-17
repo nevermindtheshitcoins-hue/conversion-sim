@@ -1,9 +1,9 @@
 .crt-effects {
   position: relative;
-  background: var(--industrial-dark);
-  border: 2px solid var(--industrial-steel);
+  background: var(--norad-black);
+  border: 1px solid var(--norad-steel);
   padding: 1rem;
-  border-radius: 4px;
+  filter: contrast(1.2);
 }
 
 .crt-effects__scanlines {
@@ -26,6 +26,6 @@
   left: 0;
   right: 0;
   bottom: 0;
-  box-shadow: inset 0 0 10px rgba(255, 107, 53, 0.1);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.8);
   pointer-events: none;
 }

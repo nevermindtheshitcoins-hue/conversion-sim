@@ -37,14 +37,14 @@ export function HeaderZone({
       <span
         key={position}
         aria-hidden="true"
-        className={`h-3 w-3 rounded-full border transition-all ${
+        className={`h-3 w-3 border transition-all ${
           isComplete
-            ? 'border-industrial-orange bg-industrial-orange shadow-[0_0_12px_rgba(255,107,53,0.6)]'
-            : 'border-industrial-steel bg-industrial-charcoal shadow-none'
+            ? 'border-norad-amber bg-norad-amber shadow-[0_0_12px_rgba(255,191,0,0.6)]'
+            : 'border-norad-steel bg-norad-black shadow-none'
         } ${!disableAnimations ? 'duration-500 ease-out' : ''}`}
         style={
           isCurrent && !disableAnimations
-            ? { boxShadow: '0 0 10px rgba(255, 107, 53, 0.55)', backgroundColor: '#ff6b35' }
+            ? { boxShadow: '0 0 10px rgba(255, 191, 0, 0.55)', backgroundColor: '#ffd700' }
             : undefined
         }
       />
@@ -52,10 +52,10 @@ export function HeaderZone({
   });
 
   return (
-    <div className="flex flex-col gap-3 p-3">
-      <div className="sr-only" role="status" aria-live="polite">
+    <div className="border border-norad-steel bg-norad-black px-6 py-4 shadow-[inset_0_2px_4px_rgba(0,0,0,0.8)]">
+      <h1 className="text-2xl font-mono font-bold uppercase tracking-[0.2em] text-norad-amber">
         Step {safeCurrentStep} of {Math.max(TOTAL_LIGHTS, safeTotalSteps)}. Status: {status}.
-      </div>
+      </h1>
       <div
         className="grid grid-cols-9 items-center gap-3"
         role="progressbar"

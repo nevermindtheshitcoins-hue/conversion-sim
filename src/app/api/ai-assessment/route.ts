@@ -565,7 +565,6 @@ export async function POST(request: NextRequest) {
           })
         : buildReportPrompt(promptContext);
 
-    let result: unknown;
     type SingleChoiceQuestion = { text: string; type: 'single_choice'; options: string[] };
     type MultiChoiceQuestion = { text: string; type: 'multi_choice'; options: string[]; maxSelections?: number };
     type TextInputQuestion = { text: string; type: 'text_input'; placeholder: string; minLength: number };
@@ -695,7 +694,7 @@ export async function POST(request: NextRequest) {
 
       return { response, questions: normalizedQuestions };
     }
-    result = await callOpenAI(prompt, requestType, controller.signal);
+    const result: unknown = await callOpenAI(prompt, requestType, controller.signal);
 
     console.log('📊 Raw AI response received:', {
       type: typeof result,
