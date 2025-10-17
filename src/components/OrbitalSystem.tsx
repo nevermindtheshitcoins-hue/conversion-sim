@@ -8,7 +8,7 @@ interface Orb {
 }
 
 interface OrbitalSystemProps {
-  questionsAnswered: number;
+  completionCount: number;
   disableAnimations?: boolean;
 }
 
@@ -18,42 +18,27 @@ interface OrbitalSystemProps {
  * Multiple orbs can orbit simultaneously at different positions.
  */
 export function OrbitalSystem({
-  questionsAnswered,
+  completionCount,
   disableAnimations = false,
 }: OrbitalSystemProps) {
   const [orbs, setOrbs] = useState<Orb[]>([]);
-  const [prevQuestionsAnswered, setPrevQuestionsAnswered] = useState(0);
+  const [prevCount, setPrevCount] = useState(0);
 
-  // Debug logging
+  // Spawn new orb when completionCount increases
   useEffect(() => {
-    console.log('🔭 OrbitalSystem props:', { questionsAnswered, disableAnimations, orbCount: orbs.length });
-  }, [questionsAnswered, disableAnimations, orbs.length]);
-
-  // Spawn new orb when a question is answered
-  useEffect(() => {
-    if (disableAnimations) {
+    if (disableAnimations || completionCount <= prevCount) {
+      setPrevCount(completionCount);
       return;
     }
 
-    if (questionsAnswered <= prevQuestionsAnswered) {
-      setPrevQuestionsAnswered(questionsAnswered);
-      return;
-    }
-
-    // New question answered - spawn orb(s)
-    const orbsToAdd = questionsAnswered - prevQuestionsAnswered;
-    console.log('✨ Spawning orbs:', { orbsToAdd, questionsAnswered, prevQuestionsAnswered });
-
-    for (let i = 0; i < orbsToAdd; i++) {
-      const newOrb: Orb = {
-        id: `orb-${Date.now()}-${i}`,
-        spawnTime: Date.now(),
-      };
-      setOrbs((prev) => [...prev, newOrb]);
-    }
-
-    setPrevQuestionsAnswered(questionsAnswered);
-  }, [questionsAnswered, disableAnimations, prevQuestionsAnswered]);
+    const newOrb: Orb = {
+      id: `orb-${Date.now()}`,
+      spawnTime: Date.now(),
+    };
+    console.log('✨ Spawning orb:', { orbId: newOrb.id, totalOrbs: orbs.length + 1, completionCount });
+    setOrbs((prev) => [...prev, newOrb]);
+    setPrevCount(completionCount);
+  }, [completionCount, disableAnimations, prevCount, orbs.length]);
 
   if (disableAnimations || orbs.length === 0) {
     return null;
@@ -85,7 +70,7 @@ function OrbitalOrb({ index, totalOrbs }: OrbitalOrbProps) {
 
   return (
     <div
-      className="orbital-orb absolute h-2 w-2 rounded-full bg-emerald-400/90 shadow-[0_0_12px_rgba(16,185,129,0.7)]"
+      className="orbital-orb absolute h-2 w-2 rounded-full bg-industrial-orange shadow-[0_0_12px_rgba(255,107,53,0.7)]"
       style={{
         animation: `orbital-spawn 0.6s ease-out forwards, orbital-perimeter 14s linear infinite`,
         animationDelay: `${spawnDelay}s, ${spawnDelay + 0.6}s`,

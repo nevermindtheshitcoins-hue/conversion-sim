@@ -39,12 +39,12 @@ export function HeaderZone({
         aria-hidden="true"
         className={`h-3 w-3 rounded-full border transition-all ${
           isComplete
-            ? 'border-emerald-400 bg-emerald-300 shadow-[0_0_12px_rgba(52,211,153,0.6)]'
-            : 'border-zinc-700 bg-zinc-900 shadow-none'
+            ? 'border-industrial-orange bg-industrial-orange shadow-[0_0_12px_rgba(255,107,53,0.6)]'
+            : 'border-industrial-steel bg-industrial-charcoal shadow-none'
         } ${!disableAnimations ? 'duration-500 ease-out' : ''}`}
         style={
           isCurrent && !disableAnimations
-            ? { boxShadow: '0 0 10px rgba(252, 211, 77, 0.55)', backgroundColor: '#fcd34d' }
+            ? { boxShadow: '0 0 10px rgba(255, 107, 53, 0.55)', backgroundColor: '#ff6b35' }
             : undefined
         }
       />

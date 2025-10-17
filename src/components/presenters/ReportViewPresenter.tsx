@@ -12,8 +12,8 @@ export const ReportViewPresenter = memo(function ReportViewPresenter({
   if (isLoading) {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-4 text-center">
-        <Loader2 className="h-12 w-12 animate-spin text-emerald-300" aria-hidden="true" />
-        <p className="text-sm uppercase tracking-[0.4em] text-zinc-500">
+        <Loader2 className="h-12 w-12 animate-spin text-industrial-orange" aria-hidden="true" />
+        <p className="text-sm uppercase tracking-[0.4em] text-text-secondary">
           Preparing executive report…
         </p>
       </div>
@@ -23,11 +23,11 @@ export const ReportViewPresenter = memo(function ReportViewPresenter({
   if (!reportData) {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-4 text-center">
-        <h2 className="text-3xl font-semibold uppercase tracking-tight text-yellow-200">
+        <h2 className="text-3xl font-display font-black uppercase tracking-wider text-text-primary">
           {title}
         </h2>
-        <p className="text-sm text-zinc-400 max-w-2xl">{helpText}</p>
-        <p className="text-xs uppercase tracking-[0.4em] text-zinc-600">
+        <p className="text-sm text-text-secondary max-w-2xl">{helpText}</p>
+        <p className="text-xs uppercase tracking-[0.4em] text-text-disabled">
           Report will appear here when ready.
         </p>
       </div>
@@ -37,10 +37,10 @@ export const ReportViewPresenter = memo(function ReportViewPresenter({
   return (
     <div className="flex h-full flex-col gap-4">
       <header className="space-y-1">
-        <h2 className="text-2xl font-semibold uppercase tracking-[0.2em] text-emerald-200">
+        <h2 className="text-2xl font-display font-black uppercase tracking-wider text-text-primary">
           {title}
         </h2>
-        <p className="text-xs uppercase tracking-[0.35em] text-emerald-400">
+        <p className="text-xs uppercase tracking-[0.35em] text-industrial-orange">
           {helpText}
         </p>
       </header>

@@ -11,7 +11,9 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['ui-sans-serif', 'system-ui', 'sans-serif'],
+        sans: ['Arial', 'Helvetica', 'sans-serif'],
+        display: ['Arial Black', 'Helvetica', 'sans-serif'],
+        mono: ['Courier New', 'monospace'],
       },
       colors: {
         background: 'hsl(var(--background))',
@@ -25,28 +27,52 @@ export default {
           foreground: 'hsl(var(--popover-foreground))',
         },
         primary: {
-          DEFAULT: 'hsl(var(--primary))',
-          foreground: 'hsl(var(--primary-foreground))',
+          DEFAULT: 'var(--industrial-orange)',
+          foreground: 'var(--text-primary)',
         },
         secondary: {
-          DEFAULT: 'hsl(var(--secondary))',
-          foreground: 'hsl(var(--secondary-foreground))',
+          DEFAULT: 'var(--industrial-blue)',
+          foreground: 'var(--text-primary)',
         },
         muted: {
-          DEFAULT: 'hsl(var(--muted))',
-          foreground: 'hsl(var(--muted-foreground))',
+          DEFAULT: 'var(--industrial-slate)',
+          foreground: 'var(--text-secondary)',
         },
         accent: {
-          DEFAULT: 'hsl(var(--accent))',
-          foreground: 'hsl(var(--accent-foreground))',
+          DEFAULT: 'var(--industrial-orange)',
+          foreground: 'var(--text-primary)',
         },
         destructive: {
-          DEFAULT: 'hsl(var(--destructive))',
-          foreground: 'hsl(var(--destructive-foreground))',
+          DEFAULT: 'var(--industrial-orange-dark)',
+          foreground: 'var(--text-primary)',
         },
-        border: 'hsl(var(--border))',
-        input: 'hsl(var(--input))',
-        ring: 'hsl(var(--ring))',
+        border: 'var(--industrial-steel)',
+        input: 'var(--industrial-charcoal)',
+        ring: 'var(--industrial-orange)',
+        /* Industrial voting booth specific colors */
+        industrial: {
+          dark: 'var(--industrial-dark)',
+          charcoal: 'var(--industrial-charcoal)',
+          slate: 'var(--industrial-slate)',
+          steel: 'var(--industrial-steel)',
+          concrete: 'var(--industrial-concrete)',
+          orange: {
+            DEFAULT: 'var(--industrial-orange)',
+            dark: 'var(--industrial-orange-dark)',
+          },
+          blue: {
+            DEFAULT: 'var(--industrial-blue)',
+            dark: 'var(--industrial-blue-dark)',
+          },
+        },
+        booth: {
+          panel: 'var(--booth-panel)',
+          button: 'var(--booth-button)',
+          'button-hover': 'var(--booth-button-hover)',
+          'button-active': 'var(--booth-button-active)',
+          screen: 'var(--booth-screen)',
+          'screen-text': 'var(--booth-screen-text)',
+        },
       },
       borderRadius: {
         lg: 'var(--radius)',

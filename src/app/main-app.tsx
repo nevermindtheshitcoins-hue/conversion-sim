@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState, useCallback } from 'react';
 import { AppContainer } from '../components/AppContainer';
 import { ControlPanel } from '../components/ControlPanel';
 import { ZonedScreen } from '../components/ZonedScreen';
@@ -10,7 +10,12 @@ import { useAssessmentFlow } from '../hooks/useAssessmentFlow';
 import { BUTTON_STYLES, FOCUS_STYLES } from '../lib/ui-constants';
 
 export default function MainApp() {
-  const { state, navigationState, handlers } = useAssessmentFlow();
+  const [completionCount, setCompletionCount] = useState(0);
+  const handleQuestionComplete = useCallback(() => {
+    setCompletionCount((prev) => prev + 1);
+  }, []);
+
+  const { state, navigationState, handlers } = useAssessmentFlow(handleQuestionComplete);
   const totalSteps = Math.max(state.totalScreens, 1);
   const currentStep = Math.min(state.currentScreenIndex + 1, totalSteps);
   const progress = (currentStep / totalSteps) * 100;
@@ -181,44 +186,34 @@ export default function MainApp() {
 
   const headerZone = useMemo(
     () => (
-      <div className="flex flex-col items-center gap-1 text-center">
-        {/* Arcade-style engraved placard - full width */}
-        <div className="relative w-full max-w-none">
-          {/* Outer bezel with realistic metal texture */}
-          <div className="relative rounded-xl bg-gradient-to-b from-zinc-600 via-zinc-700 to-zinc-800 p-1 shadow-[inset_0_3px_6px_rgba(0,0,0,0.7),inset_0_-2px_4px_rgba(255,255,255,0.15),0_4px_12px_rgba(0,0,0,0.4)]">
-            {/* Inner engraved surface with brushed metal texture */}
-            <div className="relative rounded-lg bg-gradient-to-b from-zinc-700 via-zinc-800 to-zinc-700 px-4 py-1 shadow-[inset_0_3px_8px_rgba(0,0,0,0.9),inset_0_-1px_3px_rgba(255,255,255,0.08)]">
-              {/* Engraved text with spaced lettering */}
-              <div className="flex flex-col items-center leading-none">
-                <div className="flex items-center gap-8">
-                  <h1 className="text-lg font-black uppercase tracking-[0.8em] text-zinc-300 shadow-[inset_0_2px_4px_rgba(0,0,0,0.8)] md:text-xl">
-                    P I L O T
-                  </h1>
-                  <h2 className="text-lg font-black uppercase tracking-[0.8em] text-zinc-300 shadow-[inset_0_1px_2px_rgba(0,0,0,0.6)] md:text-xl">
-                    S C E N A R I O
-                  </h2>
-                </div>
-                <h3 className="text-2xl font-black uppercase tracking-[1.2em] text-zinc-300 shadow-[inset_0_2px_6px_rgba(0,0,0,0.9)] md:text-3xl mt-1">
-                  S I M U L A T O R
-                </h3>
-              </div>
-              {/* Realistic rivet details */}
-              <div className="absolute top-0.5 left-0.5 h-1.5 w-1.5 rounded-full bg-gradient-to-br from-zinc-500 to-zinc-700 shadow-[inset_0_1px_1px_rgba(0,0,0,0.6),0_1px_2px_rgba(255,255,255,0.1)]" />
-              <div className="absolute top-0.5 right-0.5 h-1.5 w-1.5 rounded-full bg-gradient-to-bl from-zinc-500 to-zinc-700 shadow-[inset_0_1px_1px_rgba(0,0,0,0.6),0_1px_2px_rgba(255,255,255,0.1)]" />
-              <div className="absolute bottom-0.5 left-0.5 h-1.5 w-1.5 rounded-full bg-gradient-to-tr from-zinc-500 to-zinc-700 shadow-[inset_0_1px_1px_rgba(0,0,0,0.6),0_1px_2px_rgba(255,255,255,0.1)]" />
-              <div className="absolute bottom-0.5 right-0.5 h-1.5 w-1.5 rounded-full bg-gradient-to-tl from-zinc-500 to-zinc-700 shadow-[inset_0_1px_1px_rgba(0,0,0,0.6),0_1px_2px_rgba(255,255,255,0.1)]" />
+      <div className="flex flex-col items-center text-center w-full max-w-4xl px-4">
+        {/* Industrial voting booth header */}
+        <div className="w-full bg-booth-panel border-b-2 border-industrial-steel p-3 mb-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 bg-industrial-orange rounded-full"></div>
+              <h2 className="text-lg font-display font-black uppercase tracking-wider text-text-primary">
+                DeVOTE
+              </h2>
+            </div>
+            <div className="text-text-secondary text-sm font-sans">
+              Voting Booth System
             </div>
           </div>
         </div>
-
+        
+        <div className="w-full bg-industrial-charcoal border-2 border-industrial-steel rounded-lg p-4 mb-4">
+          <h1 className="text-2xl font-display font-black uppercase tracking-widest text-text-primary mb-2">
+            Pilot Scenario Simulator
+          </h1>
+          <p className="text-text-secondary text-sm font-sans">
+            Select your strategic focus area
+          </p>
+        </div>
       </div>
     ),
     [currentStep, totalSteps, progress, headerStatus, motionEnabled]
   );
-
-  // Count how many questions have been answered (completed screens beyond PRELIM_3)
-  const questionsAnswered = Math.max(0, state.currentScreenIndex - 3);
-  console.log('🔍 Questions answered calc:', { currentScreenIndex: state.currentScreenIndex, currentScreen: state.currentScreen, questionsAnswered });
 
   return (
     <AppContainer
@@ -228,7 +223,7 @@ export default function MainApp() {
       footerZone={footerZone}
       disableMotion={!motionEnabled}
       scanlines={motionEnabled}
-      questionsAnswered={questionsAnswered}
+      completionCount={completionCount}
     />
   );
 }

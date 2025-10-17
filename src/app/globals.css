@@ -113,8 +113,8 @@ textarea:focus {
 }
 
 @keyframes glowPulse {
-  0%, 100% { box-shadow: 0 0 20px rgba(16, 185, 129, 0.3); }
-  50% { box-shadow: 0 0 40px rgba(16, 185, 129, 0.6); }
+  0%, 100% { box-shadow: 0 0 20px rgba(255, 107, 53, 0.3); }
+  50% { box-shadow: 0 0 40px rgba(255, 107, 53, 0.6); }
 }
 
 /* Arcade Machine Frame Effect */
@@ -304,42 +304,48 @@ textarea:focus {
   }
 }
 
-/* --- Arcade Machine Theme Tokens ------------------------------------- */
+/* --- Industrial Voting Booth Theme Tokens ------------------------------------- */
 :root {
-  --metal-900: #0B0F17;
-  --metal-800: #111827;
-  --metal-700: #1F2937;
-  --metal-600: #2B3647;
-  --metal-gloss: #A9B3C4;
-  --yellow-600: #F4BD2F;
-  --yellow-500: #FFD23F;
-  --yellow-300: #FFE377;
-  --yellow-900: #6E5200;
-  --led-green: #2DFF8C;
-  --led-red: #FF4D4F;
-  --led-amber: #FFB020;
-  --led-off: #1C1F24;
-  --btn-red: #D63B3B;
-  --btn-green: #2DAE5A;
-  --btn-white: #EDEDED;
-  --btn-rim: #090B0F;
-  --shadow-1: rgba(0,0,0,0.25);
-  --shadow-2: rgba(0,0,0,0.45);
-  --glow-yellow: rgba(255,210,63,0.5);
+  /* Primary industrial colors */
+  --industrial-dark: #0a0a0a; /* Deep black for voting booth interior */
+  --industrial-charcoal: #1a1a1a; /* Charcoal gray for panels */
+  --industrial-slate: #2a2a2a; /* Slate gray for buttons and controls */
+  --industrial-steel: #3a3a3a; /* Steel gray for structural elements */
+  --industrial-concrete: #4a4a4a; /* Concrete gray for base */
+  
+  /* Accent colors */
+  --industrial-orange: #ff6b35; /* Strong orange for important buttons/accents */
+  --industrial-orange-dark: #e55a2b; /* Darker orange for pressed states */
+  --industrial-blue: #1e88e5; /* Industrial blue for informational elements */
+  --industrial-blue-dark: #1976d2; /* Darker blue for pressed states */
+  
+  /* Text colors */
+  --text-primary: #f0f0f0; /* Off-white for primary text */
+  --text-secondary: #cccccc; /* Light gray for secondary text */
+  --text-disabled: #999999; /* Medium gray for disabled text */
+  
+  /* Shadows */
+  --shadow-light: rgba(0,0,0,0.2);
+  --shadow-medium: rgba(0,0,0,0.4);
+  --shadow-heavy: rgba(0,0,0,0.6);
+  
+  /* Voting booth specific */
+  --booth-panel: #151515; /* Dark panel color */
+  --booth-button: #333333; /* Button base color */
+  --booth-button-hover: #444444; /* Button hover state */
+  --booth-button-active: #ff6b35; /* Button active state (orange) */
+  --booth-screen: #000000; /* Screen background */
+  --booth-screen-text: #00ff00; /* Classic green screen text */
 }
 
-/* --- New Layout & Styling for Arcade Blueprint ------------------------ */
+/* --- New Layout & Styling for Industrial Voting Booth ------------------------ */
 .engraved-title {
-  font-family: "Orbitron","Eurostile","BankGothic",system-ui,sans-serif;
+  font-family: "Arial Black", "Helvetica", sans-serif;
   font-weight: 900;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  -webkit-text-stroke: 1px #0E121A;
-  background: linear-gradient(180deg,#D9DCE1 0%,#8A8F98 40%,#5C6169 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  text-shadow: 0 2px 0 #0E121A, 0 6px 8px rgba(0,0,0,0.45);
+  color: var(--text-primary);
+  text-shadow: 0 2px 0 var(--industrial-charcoal), 0 4px 4px var(--shadow-medium);
 }
 
 .cabinet-body { min-height: 0; }
@@ -426,9 +432,9 @@ textarea:focus {
 
 .chat-box {
   font-family: 'Courier New', monospace;
-  background: linear-gradient(rgba(10,20,15,0.8), rgba(5,10,7,0.9));
-  border: 1px solid #00ff88;
-  box-shadow: 0 0 15px rgba(0,255,136,0.2);
+  background: linear-gradient(rgba(10,10,10,0.9), rgba(5,5,5,0.95));
+  border: 1px solid var(--industrial-steel);
+  box-shadow: 0 0 10px var(--shadow-medium);
   min-height: 300px;
 }
 
@@ -448,29 +454,47 @@ textarea:focus {
   min-width: 0;
 }
 
-/* Main zone content type specific styles */
+/* Main zone content type specific styles - Industrial Voting Booth */
 .main-zone--industry-picker {
-  background: linear-gradient(45deg, rgba(59, 130, 246, 0.05), rgba(147, 51, 234, 0.05));
+  background: var(--booth-panel);
+  border: 1px solid var(--industrial-steel);
+  border-radius: 4px;
 }
 
 .main-zone--single-choice {
-  background: linear-gradient(45deg, rgba(34, 197, 94, 0.05), rgba(59, 130, 246, 0.05));
+  background: var(--booth-panel);
+  border: 1px solid var(--industrial-steel);
+  border-radius: 4px;
 }
 
 .main-zone--multi-choice {
-  background: linear-gradient(45deg, rgba(168, 85, 247, 0.05), rgba(236, 72, 153, 0.05));
+  background: var(--booth-panel);
+  border: 1px solid var(--industrial-steel);
+  border-radius: 4px;
 }
 
 .main-zone--text-input {
-  background: linear-gradient(45deg, rgba(245, 158, 11, 0.05), rgba(239, 68, 68, 0.05));
+  background: var(--booth-panel);
+  border: 1px solid var(--industrial-steel);
+  border-radius: 4px;
 }
 
 .main-zone--ai-loading {
-  background: radial-gradient(circle, rgba(59, 130, 246, 0.1), rgba(0, 0, 0, 0.3));
+  background: var(--booth-panel);
+  border: 1px solid var(--industrial-steel);
+  border-radius: 4px;
 }
 
 .main-zone--report-view {
-  background: linear-gradient(180deg, rgba(16, 185, 129, 0.05), rgba(0, 0, 0, 0.1));
+  background: var(--booth-panel);
+  border: 1px solid var(--industrial-steel);
+  border-radius: 4px;
+}
+
+.main-zone--error-display {
+  background: var(--booth-panel);
+  border: 1px solid var(--industrial-steel);
+  border-radius: 4px;
 }
 
 /* Scrollbar styling for report view */
@@ -565,3 +589,7 @@ textarea:focus {
     opacity: 0.6;
   }
 }
+
+/* Matrix/Cyberpunk Text Effects - REMOVED as per user request */
+
+/* Matrix terminal overhaul - REMOVED as per user request */

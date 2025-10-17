@@ -84,7 +84,7 @@ function Marble({ state }: MarbleProps) {
 
   return (
     <div
-      className={`marble absolute h-3 w-3 rounded-full bg-emerald-400/95 shadow-[0_0_16px_rgba(16,185,129,0.8),inset_-1px_-1px_3px_rgba(0,0,0,0.4)] ${getAnimationClass()}`}
+      className={`marble absolute h-3 w-3 rounded-full bg-industrial-orange shadow-[0_0_16px_rgba(255,107,53,0.8),inset_-1px_-1px_3px_rgba(0,0,0,0.4)] ${getAnimationClass()}`}
       style={{
         animation:
           state === 'rolling'

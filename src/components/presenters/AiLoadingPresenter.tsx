@@ -15,15 +15,15 @@ export const AiLoadingPresenter = memo(function AiLoadingPresenter({
   return (
     <div className="flex h-full flex-col items-center justify-center gap-6 text-center">
       {hasError ? (
-        <AlertTriangle className="h-12 w-12 text-red-300" aria-hidden="true" />
+        <AlertTriangle className="h-12 w-12 text-industrial-orange" aria-hidden="true" />
       ) : (
-        <Loader2 className="h-12 w-12 animate-spin text-emerald-300" aria-hidden="true" />
+        <Loader2 className="h-12 w-12 animate-spin text-industrial-orange" aria-hidden="true" />
       )}
       <div className="space-y-2">
-        <p className="text-sm uppercase tracking-[0.4em] text-zinc-500">
+        <p className="text-sm uppercase tracking-[0.4em] text-text-secondary">
           {statusLabel}
         </p>
-        <p className="text-xs uppercase tracking-[0.35em] text-zinc-600">
+        <p className="text-xs uppercase tracking-[0.35em] text-text-disabled">
           {detailText}
         </p>
       </div>
@@ -32,7 +32,7 @@ export const AiLoadingPresenter = memo(function AiLoadingPresenter({
           type="button"
           onClick={onRetry}
           disabled={isLoading}
-          className="rounded-full border border-emerald-400/50 bg-transparent px-6 py-3 text-xs font-semibold uppercase tracking-[0.35em] text-emerald-200 transition-colors hover:bg-emerald-400/10 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="rounded-lg border-2 border-industrial-orange bg-booth-panel px-6 py-3 text-xs font-display font-black uppercase tracking-wider text-text-primary transition-colors hover:bg-industrial-orange hover:text-text-primary disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Retry
         </button>

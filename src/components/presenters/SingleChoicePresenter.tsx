@@ -7,14 +7,18 @@ export const SingleChoicePresenter = memo(function SingleChoicePresenter({
   helpText,
 }: ScreenPresenterProps) {
   return (
-    <div className="flex h-full flex-col items-center text-center space-y-6" style={{paddingTop: '20%'}}>
-      <header className="space-y-4">
-        <h2 className="text-4xl font-bold uppercase tracking-tight text-yellow-300 md:text-5xl">
+    <div className="flex h-full flex-col items-center space-y-6 text-center" style={{ paddingTop: '20%' }}>
+      <header className="space-y-4 w-full max-w-2xl">
+        <h2 className="text-3xl font-display font-black uppercase tracking-wider text-text-primary mb-4 text-center">
           {title}
         </h2>
-        {subtitle && <p className="text-lg text-zinc-300 max-w-2xl mx-auto md:text-xl">{subtitle}</p>}
+        {subtitle && (
+          <p className="text-lg text-text-secondary font-sans text-center mb-6">
+            {subtitle}
+          </p>
+        )}
       </header>
-      <p className="text-sm uppercase tracking-[0.35em] text-emerald-400 animate-slow-blink md:text-base">
+      <p className="text-sm uppercase tracking-[0.35em] text-industrial-orange font-sans animate-pulse-slow md:text-base text-center">
         {helpText}
       </p>
     </div>

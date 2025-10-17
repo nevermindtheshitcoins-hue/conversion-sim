@@ -50,7 +50,7 @@ const shouldDisableMotion = () => {
   return prefersReducedMotion || isMobile;
 };
 
-export function useAssessmentFlow() {
+export function useAssessmentFlow(onQuestionComplete?: () => void) {
   const [journeyTracker] = useState(() => new JourneyTracker());
   const [state, setState] = useState<AppState>({
     currentScreen: 'PRELIM_1',
@@ -489,7 +489,9 @@ export function useAssessmentFlow() {
 
       return nextState;
     });
-  }, [state, journeyTracker, generateReport]);
+
+    onQuestionComplete?.();
+  }, [state, journeyTracker, generateReport, onQuestionComplete]);
 
 
 
