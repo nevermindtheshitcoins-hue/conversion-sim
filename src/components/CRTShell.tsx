@@ -1,5 +1,4 @@
 import type { ReactNode } from 'react';
-import { FilamentTubeClock } from './FilamentTubeClock';
 
 interface CRTShellProps {
   headerZone: ReactNode;
@@ -9,9 +8,6 @@ interface CRTShellProps {
   disableMotion?: boolean;
   scanlines?: boolean;
   vignette?: boolean;
-  currentStep?: number;
-  totalSteps?: number;
-  status?: 'active' | 'loading' | 'complete';
 }
 
 export default function CRTShell({
@@ -22,21 +18,11 @@ export default function CRTShell({
   disableMotion = false,
   scanlines = true,
   vignette = true,
-  currentStep,
-  totalSteps,
-  status,
 }: CRTShellProps) {
   // Debug logging to validate CRTShell props
-  console.log('CRTShell received props:', {
-    currentStep: typeof currentStep,
-    totalSteps: typeof totalSteps,
-    status: typeof status,
-    completionCount: typeof arguments[0]?.completionCount
-  });
-
   const hasHeader = Boolean(headerZone);
   const layoutRowClasses = hasHeader
-    ? '[grid-template-rows:auto_minmax(0,3fr)_auto] md:[grid-template-rows:auto_minmax(0,3fr)_auto]'
+    ? '[grid-template-rows:minmax(64px,0.4fr)_minmax(0,3.6fr)_auto] md:[grid-template-rows:minmax(80px,0.35fr)_minmax(0,3.65fr)_auto]'
     : '[grid-template-rows:minmax(0,3fr)_auto] md:[grid-template-rows:minmax(0,3fr)_auto]';
   const screenRowClass = hasHeader ? 'md:row-start-2' : '';
   const keypadRowClass = hasHeader ? 'md:row-start-2' : '';
@@ -44,19 +30,14 @@ export default function CRTShell({
 
   return (
     <div className="crt-shell relative h-full w-full overflow-hidden rounded-lg border-2 border-industrial-steel bg-industrial-dark shadow-[0_32px_80px_rgba(0,0,0,0.8)]">
-      {/* Filament Tube Clock positioned above CRT shell */}
-      {currentStep !== undefined && totalSteps !== undefined && (
-        <FilamentTubeClock
-          currentStep={currentStep}
-          totalSteps={totalSteps}
-          status={status || 'active'}
-        />
-      )}
       <div
         className={`crt-shell__layout relative grid h-full w-full grid-cols-1 gap-1 p-1 md:grid-cols-[minmax(0,0.7fr)_minmax(0,0.3fr)] md:gap-1 md:p-2 ${layoutRowClasses}`}
       >
         {hasHeader ? (
-          <header className="crt-shell__header col-span-1 rounded-lg border-2 border-industrial-steel bg-booth-panel px-5 py-1 md:col-span-2 md:px-6 md:py-1" style={{width: '100%'}}>
+          <header
+            className="crt-shell__header col-span-1 flex h-[68px] min-h-[68px] items-center justify-center rounded-lg border-2 border-industrial-steel bg-booth-panel px-4 md:col-span-2 md:h-[84px] md:min-h-[84px] md:px-6"
+            style={{ width: '100%' }}
+          >
             {headerZone}
           </header>
         ) : null}

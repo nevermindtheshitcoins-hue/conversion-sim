@@ -108,7 +108,7 @@ export function getErrorSeverity(type: ErrorType): ErrorSeverity {
 /**
  * Generate user-friendly error message
  */
-export function getUserFriendlyMessage(type: ErrorType, details?: Record<string, unknown>): string {
+export function getUserFriendlyMessage(type: ErrorType): string {
   switch (type) {
     case ErrorType.NETWORK_ERROR:
       return 'Unable to connect. Please check your internet connection and try again.';

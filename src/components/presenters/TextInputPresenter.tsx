@@ -1,4 +1,5 @@
 import { memo } from 'react';
+import { MatrixDisplay } from '../MatrixDisplay';
 import { ScreenPresenterProps } from './types';
 
 export const TextInputPresenter = memo(function TextInputPresenter({
@@ -8,43 +9,39 @@ export const TextInputPresenter = memo(function TextInputPresenter({
   textValue,
   showTextPreview,
   onTextChange,
+  isLoading,
 }: ScreenPresenterProps) {
   return (
-    <div className="flex h-full flex-col items-center space-y-6 text-center" style={{ paddingTop: '15%' }}>
-      <header className="space-y-4 w-full max-w-2xl">
-        <h2 className="text-3xl font-display font-black uppercase tracking-wider text-text-primary mb-4 text-center">
-          {title}
-        </h2>
-        {subtitle && (
-          <p className="text-lg text-text-secondary font-sans text-center mb-6">
-            {subtitle}
-          </p>
-        )}
-      </header>
-      <p className="text-sm uppercase tracking-[0.35em] text-industrial-orange font-sans animate-pulse-slow md:text-base text-center">
-        {helpText}
-      </p>
+    <div className="flex h-full flex-col justify-center space-y-6">
+      <MatrixDisplay
+        title={title}
+        subtitle={subtitle}
+        content={helpText}
+        isLoading={isLoading}
+        isTyping={!isLoading}
+        disableAnimations={false}
+      />
 
-      <section className="space-y-2 w-full max-w-2xl">
+      <section className="space-y-2 w-full">
         <textarea
           value={textValue}
           onChange={(e) => onTextChange(e.target.value)}
           placeholder="Describe your scenario where DeVOTE technology could be used..."
-          className="w-full h-40 rounded-lg border-2 border-industrial-steel bg-booth-panel px-4 py-3 text-sm text-text-primary placeholder-text-secondary focus:outline-none focus:ring-2 focus:ring-industrial-orange"
+          className="w-full h-32 rounded-lg border-2 border-booth-red bg-booth-panel px-4 py-3 text-sm text-booth-green placeholder-booth-red/50 focus:outline-none focus:ring-2 focus:ring-booth-red font-mono"
           maxLength={500}
           autoFocus
         />
-        <div className="text-xs text-text-secondary text-right">
+        <div className="text-xs text-booth-red/70 text-right font-mono">
           {textValue.length}/500 characters (minimum 5)
         </div>
       </section>
 
       {showTextPreview && (
-        <section className="rounded-lg border-2 border-industrial-orange bg-industrial-charcoal p-4 w-full max-w-2xl">
-          <h3 className="text-xs uppercase tracking-[0.3em] text-industrial-orange mb-2">
+        <section className="rounded-lg border-2 border-booth-red bg-booth-panel p-4 w-full">
+          <h3 className="text-xs uppercase tracking-[0.3em] text-booth-green mb-2 font-mono">
             Draft Input
           </h3>
-          <p className="text-sm text-text-primary whitespace-pre-wrap leading-relaxed">
+          <p className="text-sm text-booth-green whitespace-pre-wrap leading-relaxed font-mono">
             {textValue}
           </p>
         </section>

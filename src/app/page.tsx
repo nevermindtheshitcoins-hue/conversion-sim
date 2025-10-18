@@ -1,10 +1,10 @@
 import type { Metadata } from 'next';
-import ScopingTerminal from '../components/ScopingTerminal';
+import MainApp from './main-app';
 
 export const metadata: Metadata = {
   title: 'DeVOTE Pilot Scoping Terminal',
 };
 
 export default function Page() {
-  return <ScopingTerminal />;
+  return <MainApp />;
 }

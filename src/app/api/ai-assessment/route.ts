@@ -37,15 +37,7 @@ interface OpenAIChatCompletion {
   }>;
 }
 
-interface GeminiResponse {
-  candidates?: Array<{
-    content?: {
-      parts?: Array<{
-        text?: string;
-      }>;
-    };
-  }>;
-}
+
 
 function isValidRequestType(value: unknown): value is AIRequestType {
   return value === 'generate_questions' || value === 'generate_report';
@@ -210,31 +202,7 @@ function getOpenAIContentText(completion: unknown): string {
   return extractJsonText(contentText);
 }
 
-function getGeminiContentText(completion: unknown): string {
-  assertCondition(isRecord(completion), 'Invalid Gemini response: expected object payload');
-  const { candidates } = completion as GeminiResponse;
-  assertCondition(Array.isArray(candidates) && candidates.length > 0, 'Gemini response missing candidates');
 
-  const firstCandidate = candidates[0];
-  assertCondition(isRecord(firstCandidate), 'Gemini candidate is not an object');
-
-  const candidate = firstCandidate as {
-    content?: {
-      parts?: Array<{ text?: string }>;
-    };
-  };
-  const content = candidate.content;
-  assertCondition(isRecord(content), 'Gemini response missing content payload');
-
-  const parts = content.parts;
-  assertCondition(Array.isArray(parts) && parts.length > 0, 'Gemini content missing parts');
-
-  const textPart = parts.find((part) => typeof part?.text === 'string');
-  const text = textPart?.text;
-  assertCondition(typeof text === 'string' && text.trim(), 'No content in Gemini response');
-
-  return extractJsonText(text);
-}
 
 async function callOpenAI(prompt: string, requestType: AIRequestType, signal: AbortSignal): Promise<unknown> {
   const apiKey = process.env.OPENAI_API_KEY;
@@ -351,88 +319,6 @@ async function callOpenAI(prompt: string, requestType: AIRequestType, signal: Ab
   }
 }
 
-async function callGemini(prompt: string, requestType: AIRequestType, signal: AbortSignal): Promise<unknown> {
-  const apiKey = process.env.GEMINI_API_KEY;
-  console.log('🔑 Gemini API Key check:', {
-    hasKey: !!apiKey,
-    keyLength: apiKey?.length || 0,
-    keyPrefix: apiKey ? apiKey.substring(0, 10) + '...' : 'MISSING',
-  });
-  if (!apiKey || apiKey.length < 20) {
-    throw new Error('Invalid Gemini API key');
-  }
-
-  const systemPrompt = requestType === 'generate_questions' ? SYSTEM_PROMPT_QUESTIONS : SYSTEM_PROMPT_REPORT;
-  const allowedBaseUrl =
-    'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
-  const response = await fetch(`${allowedBaseUrl}?key=${apiKey}`, {
-    signal,
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      contents: [
-        {
-          parts: [
-            {
-              text: `${systemPrompt}\n\n${prompt}`,
-            },
-          ],
-        },
-      ],
-      generationConfig: {
-        temperature: 0.8,
-        maxOutputTokens: requestType === 'generate_report' ? 2500 : 1500,
-        responseMimeType: 'application/json',
-      },
-    }),
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text().catch(() => 'Unknown error');
-    console.error('❌ Gemini API response error:', {
-      status: response.status,
-      statusText: response.statusText,
-      error: errorText.substring(0, 500),
-    });
-    throw new Error(`Gemini API error: ${response.status} - ${errorText}`);
-  }
-
-  const data = (await response.json()) as GeminiResponse;
-  let jsonText: string | null = null;
-
-  try {
-    jsonText = getGeminiContentText(data);
-  } catch (extractionError) {
-    console.error('❌ Gemini content extraction failed:', {
-      error: extractionError instanceof Error ? extractionError.message : String(extractionError),
-      responsePreview: safeJsonPreview(data),
-    });
-    throw extractionError instanceof Error ? extractionError : new Error('Failed to extract Gemini content');
-  }
-
-  console.log('📦 Gemini response structure:', {
-    hasCandidates: !!data.candidates,
-    candidatesLength: data.candidates?.length || 0,
-    hasContent: !!data.candidates?.[0]?.content,
-    hasParts: !!data.candidates?.[0]?.content?.parts,
-    hasText: typeof jsonText === 'string' && jsonText.trim().length > 0,
-    textLength: jsonText?.length || 0,
-  });
-
-  assertCondition(typeof jsonText === 'string' && jsonText.trim(), 'No content in Gemini response');
-
-  try {
-    return JSON.parse(jsonText);
-  } catch (parseError) {
-    console.error('❌ Failed to parse Gemini JSON response:', {
-      error: parseError instanceof Error ? parseError.message : String(parseError),
-      textPreview: typeof jsonText === 'string' ? jsonText.substring(0, 200) : null,
-    });
-    throw parseError;
-  }
-}
 
 const REQUEST_TIMEOUT_MS = 35000;
 

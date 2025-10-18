@@ -438,37 +438,44 @@ textarea:focus {
   min-width: 0;
 }
 
-/* Main zone content type specific styles - NORAD Control Panel */
+/* Screen zone content type specific styles - NORAD Control Panel */
+.screen-zone--industry-picker,
 .main-zone--industry-picker {
   background: var(--norad-black);
   border: 1px solid var(--norad-steel);
 }
 
+.screen-zone--single-choice,
 .main-zone--single-choice {
   background: var(--norad-black);
   border: 1px solid var(--norad-steel);
 }
 
+.screen-zone--multi-choice,
 .main-zone--multi-choice {
   background: var(--norad-black);
   border: 1px solid var(--norad-steel);
 }
 
+.screen-zone--text-input,
 .main-zone--text-input {
   background: var(--norad-black);
   border: 1px solid var(--norad-steel);
 }
 
+.screen-zone--ai-loading,
 .main-zone--ai-loading {
   background: var(--norad-black);
   border: 1px solid var(--norad-steel);
 }
 
+.screen-zone--report-view,
 .main-zone--report-view {
   background: var(--norad-black);
   border: 1px solid var(--norad-steel);
 }
 
+.screen-zone--error-display,
 .main-zone--error-display {
   background: var(--norad-black);
   border: 1px solid var(--norad-steel);

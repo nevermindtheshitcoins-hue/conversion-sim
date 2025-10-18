@@ -1,20 +1,19 @@
 import React from 'react';
 import { ContentType } from '../../types/app-state';
 
-export interface MainZoneProps {
+export interface ScreenZoneProps {
   contentType: ContentType;
   children: React.ReactNode;
   disableAnimations?: boolean;
 }
 
-export function MainZone({
+export function ScreenZone({
   contentType,
   children,
   disableAnimations = false,
-}: MainZoneProps) {
+}: ScreenZoneProps) {
   const hasContent = React.Children.count(children) > 0;
 
-  // Content type specific styling and heights
   const contentStyles: Record<ContentType, string> = {
     [ContentType.INDUSTRY_PICKER]: 'min-h-[400px] justify-start',
     [ContentType.SINGLE_CHOICE]: 'min-h-[300px] justify-start',
@@ -27,18 +26,18 @@ export function MainZone({
   };
 
   const contentTypeClasses: Record<ContentType, string> = {
-    [ContentType.INDUSTRY_PICKER]: 'main-zone--industry-picker',
-    [ContentType.SINGLE_CHOICE]: 'main-zone--single-choice',
-    [ContentType.MULTI_CHOICE]: 'main-zone--multi-choice',
-    [ContentType.TEXT_INPUT]: 'main-zone--text-input',
-    [ContentType.AI_LOADING]: 'main-zone--ai-loading',
-    [ContentType.REPORT_VIEW]: 'main-zone--report-view',
-    [ContentType.ERROR_DISPLAY]: 'main-zone--error-display',
+    [ContentType.INDUSTRY_PICKER]: 'screen-zone--industry-picker',
+    [ContentType.SINGLE_CHOICE]: 'screen-zone--single-choice',
+    [ContentType.MULTI_CHOICE]: 'screen-zone--multi-choice',
+    [ContentType.TEXT_INPUT]: 'screen-zone--text-input',
+    [ContentType.AI_LOADING]: 'screen-zone--ai-loading',
+    [ContentType.REPORT_VIEW]: 'screen-zone--report-view',
+    [ContentType.ERROR_DISPLAY]: 'screen-zone--error-display',
   };
 
   return (
     <div
-      className={`main-zone flex flex-1 flex-col ${contentStyles[contentType]} ${contentTypeClasses[contentType]} ${
+      className={`screen-zone flex flex-1 flex-col ${contentStyles[contentType]} ${contentTypeClasses[contentType]} ${
         disableAnimations ? '' : 'transition-all duration-300 ease-in-out'
       }`}
       data-content-type={contentType}
@@ -51,7 +50,7 @@ export function MainZone({
           children
         ) : (
           <div className="flex h-full w-full items-center justify-center text-sm uppercase tracking-[0.35em] text-zinc-500">
-            Loading zone content…
+            Loading screen content...
           </div>
         )}
       </div>

@@ -1,120 +1,75 @@
-# Conversion‑Sim — Business Assessment Tool
+# Conversion-Sim — AI Assessment Tool
 
-AI‑powered conversion assessment with industry‑specific questions and an 8‑factor report. Built for fast embed into Wix or any site via iframe.
+AI-powered business assessment with industry-specific questions and 8-factor reporting. Built for seamless embedding in Wix, websites, or any platform via iframe.
 
-## Features
-- Adaptive questionnaire with industry presets
-- 8‑factor scoring and simple exportable report
-- Fast Wix/HTML embed with responsive layout
-- Local dev with hot‑reload, typed code, and strict linting
-- Testable endpoints and components
+## 🚀 Features
 
-## Tech Stack
-- Framework: Next.js 15 (App Router)
-- Language: TypeScript, React 18
-- Styling: Tailwind CSS
-- Testing: Jest + React Testing Library
-- Quality: ESLint, Prettier, Type checks
-- Runtime: Node 18+
-- Package manager: npm
+- **Adaptive Intelligence**: Industry presets with AI-generated questions
+- **8-Factor Analysis**: Comprehensive scoring with exportable reports
+- **Universal Embed**: Works perfectly in Wix, HTML, or any iframe
+- **Bulletproof Reliability**: Advanced error handling with user-friendly messages
+- **Developer Friendly**: Hot-reload, TypeScript, strict linting, test coverage
+- **Security First**: HMAC verification, rate limiting, request timeouts
 
-## Project Structure
-```
-/app               # Next.js routes and API
-/components        # UI components
-/lib               # utilities, scoring logic
-/public            # static assets
-/tests             # unit/integration tests
-/docs              # project docs (deployment, ops, architecture, etc.)
-```
+## 🛠 Tech Stack
 
-## Quickstart
+- **Framework**: Next.js 15 (App Router)
+- **Language**: TypeScript, React 18
+- **Styling**: Tailwind CSS
+- **Testing**: Jest + React Testing Library
+- **Quality**: ESLint, Prettier, TypeScript strict mode
+- **Runtime**: Node 18+, npm package manager
+
+## ⚡ Quick Start
 
 ```bash
 git clone <repo-url>
 cd conversion-sim
 npm install
 cp .env.example .env.local
-# Add your OPENAI_API_KEY (and others) to .env.local
+# Add your OPENAI_API_KEY to .env.local
 npm run dev
 ```
 
-Open http://localhost:9002
+Visit **http://localhost:9002** to see your assessment tool in action.
 
-## Scripts
+## 🔧 Configuration
 
-```bash
-# Development
-npm run dev
-
-# Build
-npm run build
-npm start
-
-# Linting
-npm run lint
-npm run lint:fix
-
-# Type checking
-npm run type-check
-
-# Testing
-npm test
-npm run test:watch
-npm run test:coverage
-```
-
-## Configuration
-
-Environment variables used by the app. Copy `.env.example` to `.env.local` for development.
+### Required Environment Variables
 
 | Variable | Required | Example | Notes |
-| --- | --- | --- | --- |
-| OPENAI_API_KEY | yes | sk-xxxx | Server‑side usage only. Do not expose publicly. |
-| NEXT_PUBLIC_APP_URL | yes | http://localhost:9002 | Public base URL used in embeds and links. |
-| NODE_ENV | no | development | Automatically set in most runtimes. |
-| PORT | no | 9002 | Dev server port. |
-| LOG_LEVEL | no | info | debug \| info \| warn \| error |
+|----------|----------|---------|-------|
+| `OPENAI_API_KEY` | ✅ | `sk-xxxx` | Server-side only. Keep secret! |
+| `NEXT_PUBLIC_APP_URL` | ✅ | `http://localhost:9002` | Public URL for embeds |
+| `HMAC_SECRET` | ⚠️ Production | `openssl rand -hex 32` | For API security |
 
-### Environments
+### Optional Variables
 
-#### Development
-```bash
-cp .env.example .env.local
-npm run dev
-```
+| Variable | Default | Example | Notes |
+|----------|---------|---------|-------|
+| `NODE_ENV` | `development` | `production` | Auto-set by runtime |
+| `PORT` | `9002` | `3001` | Development server port |
+| `LOG_LEVEL` | `info` | `debug` | Logging verbosity |
 
-#### Staging
-```bash
-cp .env.example .env.staging
-# Fill staging values and configure deployment target
-```
+## 🌐 Embedding
 
-#### Production
-Provide environment variables in your host (e.g., Vercel/Render/Fly).
-```bash
-# Required variables
-OPENAI_API_KEY=your_key_here
-NEXT_PUBLIC_APP_URL=https://yourdomain.com
-```
+### Simple Iframe (Recommended)
 
-## Embedding in Wix (and any site)
-
-### Simple iframe
 ```html
-<iframe 
-  src="https://yourdomain.com" 
-  width="100%" 
+<iframe
+  src="https://yourdomain.com"
+  width="100%"
   height="800"
   frameborder="0"
   allow="clipboard-write; encrypted-media">
 </iframe>
 ```
 
-### Responsive embed
+### Responsive Embed
+
 ```html
 <div style="position:relative;width:100%;height:0;padding-bottom:56.25%;">
-  <iframe 
+  <iframe
     src="https://yourdomain.com"
     style="position:absolute;top:0;left:0;width:100%;height:100%;border:0"
     frameborder="0">
@@ -122,133 +77,110 @@ NEXT_PUBLIC_APP_URL=https://yourdomain.com
 </div>
 ```
 
-> If embedding on Wix, use the HTML iframe component. Ensure the app URL in `.env` matches the deployed origin.
+> **Tip**: Use the HTML iframe component in Wix. Ensure your deployed domain matches `NEXT_PUBLIC_APP_URL`.
 
-## Theming
+## ⌨️ Keyboard Navigation
 
-Tailwind tokens can be overridden in `tailwind.config.js`. Global CSS variables live in `app/globals.css`.
+- **Arrow Keys** (↑↓←→): Navigate options
+- **Enter/Space**: Select option
+- **Home/End**: Jump to first/last option
+- **Tab**: Move between sections
 
-```css
-/* tailwind.config.js */
-theme: {
-  extend: {
-    colors: {
-      primary: '#2563eb',
-      secondary: '#64748b',
-      accent: '#10b981'
-    }
-  }
-}
-```
+*Full accessibility support with WCAG 2.1 AA compliance*
 
-```css
-/* app/globals.css */
-:root {
-  --primary-color: #2563eb;
-  --secondary-color: #64748b;
-}
-```
+## 🔒 Security Features
 
-## Testing
+- **HMAC Signature Verification**: Prevents request tampering
+- **Rate Limiting**: 10 requests per IP, refills 1/minute
+- **Request Timeouts**: 25-second timeout prevents abuse
+- **Input Validation**: Comprehensive request/response validation
+
+## 🧪 Testing
 
 ```bash
 # Unit tests
 npm test
 
-# Integration tests
-npm run test:integration
-
-# E2E tests
-npm run test:e2e
-
-# Test specific file
-npm test -- QuestionScreen.test.tsx
+# Watch mode
+npm run test:watch
 
 # Coverage report
 npm run test:coverage
-```
 
-## Troubleshooting
-
-### Build issues
-```bash
-# Clear cache
-rm -rf .next node_modules package-lock.json
-npm install
-
-# Type errors
+# Type checking
 npm run type-check
 
-# ESLint errors
-npm run lint:fix
+# Linting
+npm run lint
 ```
 
-### Runtime issues
+## 🐛 Troubleshooting
+
+### Build Issues
 ```bash
-# Start with verbose logs
+# Clear cache and reinstall
+rm -rf .next node_modules package-lock.json
+npm install
+```
+
+### Runtime Issues
+```bash
+# Verbose logging
 npm run dev -- --debug
 
-# Verify environment variables
+# Check environment variables
 echo $OPENAI_API_KEY
 
-# Port conflicts
+# Different port
 npm run dev -- --port 3001
 ```
 
-### API checks
+### API Issues
 ```bash
-# Test API endpoint
-curl -X POST http://localhost:9002/api/test \
+# Test endpoint
+curl -X POST http://localhost:9002/api/ai-assessment \
   -H "Content-Type: application/json" \
   -d '{"test": true}'
 
-# Check OpenAI connection
-node -e "console.log(process.env.OPENAI_API_KEY ? 'API key set' : 'Missing API key')"
+# Check API key
+node -e "console.log(process.env.OPENAI_API_KEY ? '✅ API key set' : '❌ Missing API key')"
 ```
 
-### Performance
-```bash
-# Build + analyze
-npm run build
-npm run analyze
+## 📚 Documentation
 
-# Lighthouse
-npx lighthouse http://localhost:9002 --view
-```
+### 🎯 Essential Guides
+- **[Project History](./docs/archive/PROJECT_HISTORY.md)** - Changelog and roadmap
+- **[Architecture Design](./docs/archive/ZONED_ARCHITECTURE_DESIGN.md)** - Technical specification
+- **[Security Implementation](./docs/archive/SECURITY_IMPLEMENTATION.md)** - Security measures
 
-## Documentation
+### 🔧 Development Guides
+- **[Implementation Guide](./docs/archive/ROUND_2_IMPLEMENTATION_GUIDE.md)** - Step-by-step coding
+- **[Visual Flow Diagram](./docs/archive/VISUAL_FLOW_DIAGRAM.md)** - Architecture diagrams
+- **[Content Type Mapping](./docs/archive/CONTENT_TYPE_MAPPING.md)** - Screen-by-screen breakdown
 
-### 📚 Essential Documentation
-- **[Quick Reference](./docs/QUICK_REFERENCE.md)** - Fast lookup for all key information
-- **[Project History](./docs/PROJECT_HISTORY.md)** - Complete changelog and updates
-- **[Architecture Design](./docs/ZONED_ARCHITECTURE_DESIGN.md)** - Complete technical specification
+### ⚡ Quick References
+- **[Error Handling](./docs/archive/ERROR_HANDLING.md)** - Comprehensive error management
+- **[Keyboard Shortcuts](./docs/archive/KEYBOARD_SHORTCUTS.md)** - User shortcuts guide
+- **[Performance Optimization](./docs/archive/PERFORMANCE_OPTIMIZATION.md)** - Performance tuning
+- **[TypeScript Strictness](./docs/archive/TYPESCRIPT_STRICTNESS.md)** - TypeScript best practices
 
-### 🔧 Implementation & Development
-- **[Implementation Guide](./docs/ROUND_2_IMPLEMENTATION_GUIDE.md)** - Step-by-step coding instructions
-- **[Content Type Mapping](./docs/CONTENT_TYPE_MAPPING.md)** - Screen-by-screen breakdown
-- **[Visual Flow Diagram](./docs/VISUAL_FLOW_DIAGRAM.md)** - Architecture diagrams and flows
+### 🔐 Operations
+- **[Security Quickstart](./docs/archive/SECURITY_QUICKSTART.md)** - Fast security setup
+- **[UX Polish Implementation](./docs/archive/UX_POLISH_IMPLEMENTATION.md)** - Accessibility details
 
-### 🔒 Security & Operations
-- **[Security Implementation](./docs/SECURITY_IMPLEMENTATION.md)** - Security measures and configuration
-- **[Security Quickstart](./docs/SECURITY_QUICKSTART.md)** - Fast security setup guide
+---
 
-### ♿ Accessibility & Polish
-- **[Keyboard Shortcuts](./docs/KEYBOARD_SHORTCUTS.md)** - User-facing shortcuts guide
-- **[UX Polish Implementation](./docs/UX_POLISH_IMPLEMENTATION.md)** - Accessibility details
+*"Unless someone like you cares a whole awful lot, nothing is going to get better. It's not."*
+— **Dr. Seuss** 💚
 
-### 📝 Development Guides
-- **[TypeScript Strictness](./docs/TYPESCRIPT_STRICTNESS.md)** - TypeScript best practices
-- **[Performance Optimization](./docs/PERFORMANCE_OPTIMIZATION.md)** - Performance tuning guide
+*From there to here, and here to there, funny things are everywhere! If you never did, you should. These things are fun, and fun is good.*
 
-### 📦 Archive
-- **[ze_deletables/](./docs/ze_deletables/)** - Outdated and redundant documentation
+---
 
-### Legacy References
-- Deployment: See Quick Reference and Security Implementation
-- Operations: See Security Implementation and Performance Optimization
-- Contributing: See Project History for current patterns
-- License: [LICENSE](./LICENSE)
+## 📄 License
 
-## License
+MIT License. See [LICENSE](./LICENSE) for details.
 
-MIT unless replaced. See [LICENSE](./LICENSE).
+---
+
+**Built with ❤️ by the Conversion-Sim team** | **Ready for production** 🚀

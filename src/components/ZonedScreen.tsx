@@ -1,5 +1,5 @@
 import React from 'react';
-import { MainZone } from './zones/MainZone';
+import { ScreenZone } from './zones/ScreenZone';
 import { ContentType } from '../types/app-state';
 import type { ReportData } from '../types/report';
 import { SCREEN_TEXTS } from '../config/screen-text';
@@ -70,12 +70,12 @@ export function ZonedScreen({
 
   return (
     <div className="zoned-screen h-full flex flex-col space-y-6">
-      <MainZone
+      <ScreenZone
         contentType={contentType}
         disableAnimations={disableAnimations}
       >
         <PresenterComponent {...presenterProps} />
-      </MainZone>
+      </ScreenZone>
     </div>
   );
 }

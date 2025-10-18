@@ -9,7 +9,9 @@ export type AppContainerProps = {
   disableMotion?: boolean;
   scanlines?: boolean;
   vignette?: boolean;
-  completionCount?: number;
+  currentStep?: number;
+  totalSteps?: number;
+  status?: 'active' | 'loading' | 'complete';
 };
 
 export function AppContainer({
@@ -20,14 +22,9 @@ export function AppContainer({
   disableMotion = false,
   scanlines = true,
   vignette = true,
-  completionCount = 0,
-  // Debug logging to validate prop forwarding
-  console.log('AppContainer received props:', {
-    completionCount: typeof completionCount,
-    currentStep: typeof arguments[0]?.currentStep,
-    totalSteps: typeof arguments[0]?.totalSteps,
-    status: typeof arguments[0]?.status
-  });
+  currentStep,
+  totalSteps,
+  status,
 }: AppContainerProps) {
   return (
     <div className="app-container min-h-dvh bg-industrial-dark text-text-primary">
@@ -37,13 +34,6 @@ export function AppContainer({
           role="region"
           aria-label="Pilot scenario simulator"
         >
-    // Debug logging for CRTShell props
-    console.log('AppContainer -> CRTShell props:', {
-      completionCount: typeof completionCount,
-      currentStep: typeof arguments[0]?.currentStep,
-      totalSteps: typeof arguments[0]?.totalSteps,
-      status: typeof arguments[0]?.status
-    });
           <CRTShell
             headerZone={headerZone}
             screenZone={screenZone}
@@ -52,7 +42,9 @@ export function AppContainer({
             disableMotion={disableMotion}
             scanlines={scanlines}
             vignette={vignette}
-            completionCount={completionCount}
+            {...(currentStep !== undefined && totalSteps !== undefined
+              ? { currentStep, totalSteps, status: status || 'active' }
+              : {})}
           />
         </section>
 

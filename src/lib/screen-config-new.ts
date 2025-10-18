@@ -1,7 +1,7 @@
 // src/lib/screen-config-new.ts
 // Screen configuration for assessment flow screens
 
-import { BASE_PRELIM_QUESTIONS, INDUSTRY_PRELIM_QUESTIONS, type BasePrelimData, type IndustryPrelimData } from '../data/preliminary-questions';
+import { BASE_PRELIM_QUESTIONS, INDUSTRY_PRELIM_QUESTIONS, type IndustryPrelimData } from '../data/preliminary-questions';
 
 export interface ScreenConfig {
   title: string;
@@ -18,17 +18,10 @@ export interface ScreenConfig {
 export function getScreenConfig(screen: string, industry?: string): ScreenConfig {
   // Handle PRELIM_1 (base question, no industry specific)
   if (screen === 'PRELIM_1') {
-  // Debug logging for subtitle type issue
-  console.log('getScreenConfig return object:', {
-    title: typeof config.title,
-    subtitle: typeof config.subtitle,
-    subtitleValue: config.subtitle,
-    optionsLength: config.options?.length || 0
-  });
     const config = BASE_PRELIM_QUESTIONS.PRELIM_1;
     return {
       title: config.title,
-      subtitle: config.subtitle,
+      ...(config.subtitle !== undefined ? { subtitle: config.subtitle } : {}),
       options: config.options,
       context: config.context,
       multiSelect: config.multiSelect ?? false,
@@ -43,10 +36,20 @@ export function getScreenConfig(screen: string, industry?: string): ScreenConfig
   if ((screen === 'PRELIM_2' || screen === 'PRELIM_3') && industry) {
     const industryData = INDUSTRY_PRELIM_QUESTIONS[industry as keyof IndustryPrelimData];
     if (industryData && industryData[screen as keyof typeof industryData]) {
-      const config = industryData[screen as keyof typeof industryData] as any;
+      const config = industryData[screen as keyof typeof industryData] as {
+        title: string;
+        subtitle?: string;
+        options: string[];
+        context: string;
+        multiSelect?: boolean;
+        maxSelections?: number;
+        aiGenerated?: boolean;
+        industryBased?: boolean;
+        textInput?: boolean;
+      };
       return {
         title: config.title,
-        subtitle: config.subtitle,
+        ...(config.subtitle !== undefined ? { subtitle: config.subtitle } : {}),
         options: config.options,
         context: config.context,
         multiSelect: config.multiSelect ?? false,

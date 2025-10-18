@@ -58,6 +58,13 @@ export default {
           amber: 'var(--norad-amber)',
           cyan: 'var(--norad-cyan)',
         },
+        booth: {
+          black: '#0a0a0a',
+          red: '#cf6679',
+          green: '#00ff64',
+          screen: '#0a0e14',
+          panel: '#1a1a1a',
+        },
       },
       borderRadius: {
         lg: 'var(--radius)',
@@ -132,6 +139,14 @@ export default {
             opacity: '0.6',
           },
         },
+        'scanline-drift': {
+          '0%': {
+            backgroundPosition: '0 0',
+          },
+          '100%': {
+            backgroundPosition: '0 100%',
+          },
+        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
@@ -141,6 +156,7 @@ export default {
         flow: 'flow 6s ease-in-out infinite',
         scroll: 'scroll 3s linear infinite',
         'slow-blink': 'slow-blink 2s ease-in-out infinite',
+        'scanline-drift': 'scanline-drift 8s linear infinite',
       },
     },
   },
